@@ -61,6 +61,33 @@
     background:#f9a8c9; color:#fff; border:none; font-size:11px; line-height:1; cursor:pointer; padding:0;
   }
   .note{font-size:.72rem; color:#a3b2c2; margin-top:8px;}
+  /* タブ */
+  .tabs{display:flex; gap:6px; margin-bottom:14px;}
+  .tab{
+    flex:1; padding:11px 2px; border-radius:14px; border:2px solid #e3edf5; background:#fff;
+    color:#8aa0b5; font-weight:700; font-size:.84rem; cursor:pointer; transition:.15s;
+    font-family:inherit;
+  }
+  .tab.on{
+    background:linear-gradient(135deg,#8ec9f0,#f9a8c9); color:#fff; border-color:transparent;
+    box-shadow:0 4px 12px rgba(190,160,210,.4);
+  }
+  .pane{display:none;}
+  .pane.on{display:block;}
+  /* 選択中シールのキラキラ(プルダウン1行・常に表示=画面がズレない) */
+  .selbar{
+    display:flex; margin:0 auto 10px; width:90%; max-width:500px;
+    background:#fff; border:2px solid #f3d9e6; border-radius:14px; padding:6px 10px;
+    gap:8px; align-items:center;
+    box-shadow:0 4px 14px rgba(190,160,210,.18);
+  }
+  .selbar .lbl{flex:none; font-size:.74rem; font-weight:700; color:#c88bac;}
+  .selbar select{
+    flex:1; min-width:0; font-family:inherit; font-size:.8rem; font-weight:700; color:#9b8ab8;
+    border:2px solid #e8dced; border-radius:10px; padding:7px 8px; background:#fdf8fc;
+  }
+  .selbar.off{opacity:.55;}
+  .selbar.off select{pointer-events:none;}
   .palette{
     display:grid; grid-template-columns:repeat(6,1fr); gap:6px;
     max-height:190px; overflow-y:auto; padding:8px; background:#fbf7fb; border-radius:14px;
@@ -89,6 +116,10 @@
   .d-blue{background:repeating-linear-gradient(90deg,#e8f3fc 0 8px,#c5e0f5 8px 16px),#e8f3fc;}
   .d-white{background:#fff7fa; border:3px solid #f9c9da;}
   .d-lemon{background:repeating-linear-gradient(90deg,#fdf6e3 0 8px,#f7e6b0 8px 16px),#fdf6e3;}
+  .d-lav{background:repeating-linear-gradient(90deg,#f1e8fc 0 8px,#ddc9f5 8px 16px),#f1e8fc;}
+  .d-mint{background:repeating-linear-gradient(90deg,#e7f8ef 0 8px,#bfe9d2 8px 16px),#e7f8ef;}
+  .d-tea{background:repeating-linear-gradient(90deg,#f7f0e4 0 8px,#e8d6b8 8px 16px),#f7f0e4;}
+  .d-choco{background:repeating-linear-gradient(90deg,#3f2f28 0 8px,#524036 8px 16px),#3f2f28;}
   .ctrl{margin-bottom:13px;}
   .ctrl label{display:flex; justify-content:space-between; font-size:.8rem; margin-bottom:4px;}
   .ctrl label span.val{color:#8aa0b5;}
@@ -113,7 +144,8 @@
     font-size:.95rem; font-weight:700; cursor:pointer; transition:.15s; color:#fff; width:100%;
   }
   button:hover{transform:translateY(-2px); filter:brightness(1.04);}
-  .btn-create{background:linear-gradient(135deg,#8ec9f0,#7db8e8); margin-bottom:10px;}
+  .btn-create{background:linear-gradient(135deg,#8ec9f0,#7db8e8); padding:8px; font-size:.82rem; border-radius:12px; margin-bottom:10px;}
+  .btn-align{background:linear-gradient(135deg,#7fd4b0,#54bd92); padding:8px; font-size:.82rem; border-radius:12px; margin-bottom:10px;}
   .btn-dl{background:linear-gradient(135deg,#f9a8c9,#f28bb5);}
   .btn-mock{background:linear-gradient(135deg,#b8a7ea,#9b7fe0); margin-top:10px;}
   .btn-sample{
@@ -157,6 +189,13 @@
 
 <div class="wrap">
   <div class="panel">
+    <div class="tabs">
+      <button class="tab on" data-pane="pane-sozai">🧸 素材</button>
+      <button class="tab" data-pane="pane-daishi">🎨 台紙</button>
+      <button class="tab" data-pane="pane-shitsukan">✨ 質感</button>
+    </div>
+
+    <div class="pane on" id="pane-sozai">
     <div class="step"><span class="num">1</span>画像をアップロード</div>
     <div class="drop" id="drop">
       <span class="big">☁️⬆️</span>
@@ -164,23 +203,29 @@
       <input type="file" id="file" accept="image/*" multiple>
     </div>
     <div class="thumbs" id="thumbs"></div>
-    <div class="note">※ 透過PNGがおすすめ。最大20枚まで</div>
+    <div class="note">※ 透過PNGがおすすめ(最大20種類)。<b>サムネをタップすると台紙に追加</b>…台紙で消しちゃっても何度でも追加できます。×は一覧からの削除</div>
     <button class="btn-sample" id="sample">🧸 サンプル素材で試してみる</button>
 
     <div class="step"><span class="num">2</span>よはくに貼るデコ素材</div>
     <div class="palette" id="palette"></div>
     <div class="note">タップで台紙に追加。台紙上で動かす・大きさ変更・⧉コピーも自由!</div>
     <div class="ctrl toggle-row" style="margin-top:10px;">
-      <span>「作成」ですきまに自動でまく</span>
+      <span>🎲ランダム配置のとき、すきまにデコもまく</span>
       <label class="switch"><input type="checkbox" id="deco" checked><span class="sl"></span></label>
     </div>
+    </div><!-- /pane-sozai -->
 
+    <div class="pane" id="pane-daishi">
     <div class="step"><span class="num">3</span>シール台紙のデザイン</div>
     <div class="designs">
       <div class="design d-pink sel" data-d="pink" title="いちごみるく"></div>
       <div class="design d-blue" data-d="blue" title="そーだ"></div>
       <div class="design d-white" data-d="white" title="ホワイトハート"></div>
       <div class="design d-lemon" data-d="lemon" title="れもん"></div>
+      <div class="design d-lav" data-d="lavender" title="ゆめかわ"></div>
+      <div class="design d-mint" data-d="mint" title="ちょこみんと"></div>
+      <div class="design d-tea" data-d="milktea" title="みるくてぃー"></div>
+      <div class="design d-choco" data-d="choco" title="ちょこ"></div>
       <div class="design d-black" data-d="black" title="クール(ブラック)"></div>
       <div class="design d-mono" data-d="mono" title="クール(グレー)"></div>
     </div>
@@ -207,23 +252,28 @@
       <label>キャッチコピー(空欄で非表示)</label>
       <input type="text" id="catch" value="かわいいを ぎゅっと つめこんで ♡" maxlength="30">
     </div>
+    </div><!-- /pane-daishi -->
 
+    <div class="pane" id="pane-shitsukan">
     <div class="step"><span class="num">4</span>シールのサイズ・質感</div>
     <div class="ctrl">
       <label>シールの大きさ <span class="val" id="sizeVal">標準</span></label>
-      <input type="range" id="size" min="50" max="150" value="100">
+      <input type="range" id="size" min="25" max="150" value="100">
     </div>
     <div class="ctrl">
       <label>ふち(余白)の太さ <span class="val" id="edgeVal">標準</span></label>
       <input type="range" id="edge" min="2" max="14" value="7">
     </div>
     <div class="ctrl">
-      <label>✨ 仕上げ(キラキラ加工)</label>
+      <label>✨ 仕上げ(キラキラ加工・ぜんぶのシール)</label>
       <select id="finish">
         <option value="none">ノーマル</option>
         <option value="glitter">ラメ(こまかい)</option>
-        <option value="holo">レインボーラメ(大粒)</option>
-        <option value="both">両方のせ</option>
+        <option value="holo">大粒レインボー ●まる</option>
+        <option value="holo_star">大粒レインボー ★ほし</option>
+        <option value="holo_heart">大粒レインボー ♡ハート</option>
+        <option value="holo_mix">大粒レインボー MIX(●★♡)</option>
+        <option value="both">両方のせ(ラメ+MIX)</option>
       </select>
     </div>
     <div class="ctrl toggle-row">
@@ -238,17 +288,35 @@
       <span>タグ穴(吊り下げ穴)</span>
       <label class="switch"><input type="checkbox" id="tagHole" checked><span class="sl"></span></label>
     </div>
+    </div><!-- /pane-shitsukan -->
 
-    <button class="btn-create" id="create">🎲 ランダム配置</button>
+    <div style="display:flex; gap:8px;">
+      <button class="btn-create" id="create">🎲 ランダム配置</button>
+      <button class="btn-align" id="align">📏 きれいに整列</button>
+    </div>
     <button class="btn-dl" id="download">⬇️ ダウンロード</button>
     <button class="btn-mock" id="mockup">🛍️ 店頭商品風モックアップを保存</button>
   </div>
 
   <div class="stage">
+    <div class="selbar" id="selbar">
+      <span class="lbl">✨ このシールだけ:</span>
+      <select id="selFinish">
+        <option value="">台紙と同じ</option>
+        <option value="none">ノーマル</option>
+        <option value="glitter">ラメ(こまかい)</option>
+        <option value="holo">大粒 ●まる</option>
+        <option value="holo_star">大粒 ★ほし</option>
+        <option value="holo_heart">大粒 ♡ハート</option>
+        <option value="holo_mix">大粒 MIX</option>
+        <option value="both">両方のせ</option>
+      </select>
+    </div>
     <canvas id="sheet" width="1000" height="1800"></canvas>
     <div class="hint">
       シールを<b>タップで選択</b> → ドラッグで移動 ✨<br>
-      <b>↻</b> 回転 ／ <b>↘</b> 大きさ ／ <b>⧉</b> コピーして増やす ／ <b>×</b> 削除
+      <b>↻</b> 回転 ／ <b>↘</b> 大きさ ／ <b>⧉</b> コピーして増やす ／ <b>×</b> 削除<br>
+      重なってるシールは<b>同じ場所をトントンとタップ</b>すると下のシールに切り替わるよ
     </div>
   </div>
 </div>
@@ -265,7 +333,9 @@
 <script>
 const canvas = document.getElementById('sheet');
 const ctx = canvas.getContext('2d');
-const W = canvas.width, H = canvas.height;   // 縦長固定 (5:9)
+const SS = 2;                      // 高解像度レンダリング(iPad等の大画面対策)
+const W = 1000, H = 1800;          // 論理サイズ(縦長固定 5:9)
+canvas.width = W*SS; canvas.height = H*SS;
 const $ = id => document.getElementById(id);
 const mk = (w,h)=>{const c=document.createElement('canvas');c.width=Math.max(1,Math.ceil(w));c.height=Math.max(1,Math.ceil(h));return c;};
 
@@ -277,6 +347,10 @@ const DESIGNS = {
   blue:  {bg:'#eaf4fc', check:'rgba(178,214,243,.55)', frame:'#f7bfd6', titleShadow:'#b9d8f0', sub:'#6ba3d6'},
   white: {bg:'#fffafc', check:null, frame:'#f6b9d2', titleShadow:'#fbd9e8', sub:'#e58bb0'},
   lemon: {bg:'#fdf7e6', check:'rgba(244,222,150,.45)', frame:'#f2c9a3', titleShadow:'#f0dba0', sub:'#d9a23c'},
+  lavender:{bg:'#f4eefc', check:'rgba(206,185,240,.45)', frame:'#f7bfd6', titleShadow:'#d9c6f2', sub:'#a688d6'},
+  mint:  {bg:'#e9f8f0', check:'rgba(167,224,196,.5)', frame:'#f6b9d2', titleShadow:'#bfe7d3', sub:'#56b388'},
+  milktea:{bg:'#f7f0e6', check:'rgba(216,190,158,.42)', frame:'#d9b48e', titleShadow:'#e6d2b8', sub:'#b08a5a'},
+  choco: {bg:'#3f2f28', check:'rgba(255,255,255,.05)', frame:'#c79b7c', titleShadow:'#241a15', sub:'#dbb795'},
   black: {bg:'#23242e', check:'rgba(255,255,255,.055)', frame:'#7f87a8', titleShadow:'#101118', sub:'#aab4d4'},
   mono:  {bg:'#eceff3', check:'rgba(168,178,194,.35)', frame:'#9aa6b8', titleShadow:'#c9d1db', sub:'#5d6b7c'},
 };
@@ -338,7 +412,8 @@ const sel = ()=> stickers.find(s=>s.id===selId) || null;
 const images = ()=> stickers.filter(s=>s.kind==='image');
 function updateTouchAction(){ canvas.style.touchAction = selId>=0 ? 'none' : 'pan-y'; }
 
-/* ================= 画像追加 ================= */
+/* ================= 画像追加(素材庫方式) ================= */
+let lib = [];   // アップした画像の一覧 {id,img,url} …台紙から消してもここに残る
 $('drop').addEventListener('click', ()=> $('file').click());
 $('file').addEventListener('change', e=>{ addFiles(e.target.files); $('file').value=''; });
 ['dragover','dragenter'].forEach(ev=>$('drop').addEventListener(ev,e=>{e.preventDefault();$('drop').classList.add('over');}));
@@ -348,7 +423,7 @@ $('drop').addEventListener('drop', e=>addFiles(e.dataTransfer.files));
 function addFiles(files){
   [...files].forEach(f=>{
     if(!f.type.startsWith('image/')) return;
-    if(images().length>=20){ alert('画像シールは最大20枚までです🙏'); return; }
+    if(lib.length>=20){ alert('画像は最大20種類までです🙏'); return; }
     const url = URL.createObjectURL(f);
     const img = new Image();
     img.onload = ()=> pushImage(img, url);
@@ -356,10 +431,47 @@ function addFiles(files){
   });
 }
 function pushImage(img, url){
-  if(images().length>=20) return;
-  stickers.push({id:nextId++, kind:'image', img, thumbURL:url,
-    x:0,y:0, rot:0, scale:1, cache:null, builtSize:0, builtEdge:0, auto:false});
-  relayout(); renderThumbs(); draw();
+  if(lib.length>=20) return;
+  const entry = {id:nextId++, img, url};
+  lib.push(entry);
+  renderThumbs();
+  placeImage(entry);   // 1枚だけ台紙に置く(他のシールは動かさない)
+}
+function placeImage(entry){
+  if(images().length>=20){ alert('台紙の画像シールは最大20枚までです🙏'); return; }
+  const bp = images()[0]?.basePx || baseSizeImages();
+  // いちばん空いている場所を探して置く
+  let best={x:W/2,y:(TITLE_H+H-FOOTER_H)/2}, bestScore=-1;
+  for(let i=0;i<50;i++){
+    const x=FRAME+90+Math.random()*(W-FRAME*2-180);
+    const y=TITLE_H+70+Math.random()*(H-TITLE_H-FOOTER_H-160);
+    let dmin=1e9;
+    for(const s of stickers) dmin=Math.min(dmin,Math.hypot(x-s.x,y-s.y));
+    if(dmin>bestScore){ bestScore=dmin; best={x,y}; }
+  }
+  const s={id:nextId++, kind:'image', img:entry.img, thumbURL:entry.url, libId:entry.id,
+    x:best.x, y:best.y, rot:(Math.random()-.5)*.14, scale:1,
+    cache:null, builtSize:0, builtEdge:0, basePx:bp, auto:false};
+  stickers.push(s);
+  selId=s.id; updateTouchAction();
+  draw();
+}
+function renderThumbs(){
+  const t=$('thumbs'); t.innerHTML='';
+  lib.forEach(entry=>{
+    const d=document.createElement('div'); d.className='thumb';
+    d.title='タップで台紙に追加';
+    const im=document.createElement('img'); im.src=entry.url;
+    const x=document.createElement('button'); x.className='x'; x.textContent='×';
+    x.title='一覧から削除';
+    x.onclick=(ev)=>{
+      ev.stopPropagation();
+      lib=lib.filter(q=>q.id!==entry.id);
+      renderThumbs();
+    };
+    d.addEventListener('click', ()=> placeImage(entry));
+    d.append(im,x); t.appendChild(d);
+  });
 }
 function addAsset(i, opts={}){
   const a = decoAssets[i];
@@ -374,20 +486,7 @@ function addAsset(i, opts={}){
   draw();
   return s;
 }
-function renderThumbs(){
-  const t=$('thumbs'); t.innerHTML='';
-  images().forEach(s=>{
-    const d=document.createElement('div'); d.className='thumb';
-    const im=document.createElement('img'); im.src=s.thumbURL;
-    const x=document.createElement('button'); x.className='x'; x.textContent='×';
-    x.onclick=()=>{
-      stickers=stickers.filter(q=>q.id!==s.id);
-      if(selId===s.id){ selId=-1; updateTouchAction(); }
-      renderThumbs(); relayout(); draw();
-    };
-    d.append(im,x); t.appendChild(d);
-  });
-}
+
 
 /* ================= サンプル素材 ================= */
 $('sample').addEventListener('click', ()=>{
@@ -555,23 +654,54 @@ function puffify(base, edge, d, bl, finish='none', glossBand=true){
 
   return out;
 }
+function pathStar(g,x,y,r,rot){
+  g.beginPath();
+  for(let i=0;i<10;i++){
+    const a=rot+i*Math.PI/5-Math.PI/2;
+    const rr=(i%2)? r*.45 : r;
+    const px=x+Math.cos(a)*rr, py=y+Math.sin(a)*rr;
+    i? g.lineTo(px,py) : g.moveTo(px,py);
+  }
+  g.closePath();
+}
+function pathHeart(g,x,y,r,rot){
+  g.save(); g.translate(x,y); g.rotate(rot); g.scale(r,r);
+  g.beginPath();
+  g.moveTo(0,.38);
+  g.bezierCurveTo(-1.12,-.42, -.46,-1.15, 0,-.45);
+  g.bezierCurveTo(.46,-1.15, 1.12,-.42, 0,.38);
+  g.closePath();
+  g.restore();
+}
 function applyFinish(o, sil, cw, chh, finish){
-  if(finish==='holo' || finish==='both'){
+  // 粒の大きさはシールの大きさに連動(大きいシールほど粒も大きく)
+  const k=Math.max(SS, Math.max(cw,chh)/300);
+  const HOLO_SHAPE={holo:'circle', holo_star:'star', holo_heart:'heart', holo_mix:'mix', both:'mix'};
+  const hs=HOLO_SHAPE[finish];
+  if(hs){
     // でかいレインボーラメ:虹色の大粒グリッター(色の流れつき)
     const rb=mk(cw,chh), g=rb.getContext('2d');
-    const n=Math.max(26, Math.round(cw*chh/700));
+    const n=Math.max(26, Math.round(cw*chh/(700*k*k)));
     for(let i=0;i<n;i++){
       const x=Math.random()*cw, y=Math.random()*chh;
       // 位置で色が流れる(左上→右下で虹が回る)+ランダムゆらぎ
       const hue=((x+y)/(cw+chh)*300 + Math.random()*70) % 360;
-      const r=2.2+Math.random()*3.4;
+      const r=(2.2+Math.random()*3.4)*k;
       g.globalAlpha=.5+Math.random()*.5;
       g.fillStyle=`hsl(${hue},100%,${62+Math.random()*18}%)`;
-      g.beginPath(); g.arc(x,y,r,0,7); g.fill();
+      // 形:●/★/♡ または MIX
+      const rot=Math.random()*Math.PI*2;
+      const shape = hs==='mix'
+        ? (Math.random()<.5?'circle':(Math.random()<.56?'star':'heart'))
+        : hs;
+      if(shape==='circle'){ g.beginPath(); g.arc(x,y,r,0,7); }
+      else if(shape==='star'){ pathStar(g,x,y,r*1.9,rot); }
+      else { pathHeart(g,x,y,r*2.4,rot); }
+      g.fill();
     }
     // 大きめの虹キラ(4方向スパーク)
     for(let i=0;i<n/5;i++){
-      const x=Math.random()*cw, y=Math.random()*chh, r=5+Math.random()*7;
+      const x=Math.random()*cw, y=Math.random()*chh, r=(5+Math.random()*7)*k;
       const hue=((x+y)/(cw+chh)*300 + Math.random()*70) % 360;
       g.globalAlpha=.8+Math.random()*.2;
       g.fillStyle=`hsl(${hue},100%,75%)`;
@@ -596,16 +726,16 @@ function applyFinish(o, sil, cw, chh, finish){
     // ラメ粒子
     const gl=mk(cw,chh), g=gl.getContext('2d');
     const colors=['#ffffff','#ffe3f2','#dff1ff','#fff7cc','#efe0ff'];
-    const n=Math.max(60, Math.round(cw*chh/160));
+    const n=Math.max(60, Math.round(cw*chh/(160*k*k)));
     for(let i=0;i<n;i++){
       const x=Math.random()*cw, y=Math.random()*chh;
       g.fillStyle=colors[Math.floor(Math.random()*colors.length)];
       g.globalAlpha=.3+Math.random()*.65;
-      g.beginPath(); g.arc(x,y,.7+Math.random()*1.6,0,7); g.fill();
+      g.beginPath(); g.arc(x,y,(.7+Math.random()*1.6)*k,0,7); g.fill();
     }
     // 大きめのキラ(4方向スパーク)
     for(let i=0;i<n/22;i++){
-      const x=Math.random()*cw, y=Math.random()*chh, r=2.5+Math.random()*4;
+      const x=Math.random()*cw, y=Math.random()*chh, r=(2.5+Math.random()*4)*k;
       g.globalAlpha=.75+Math.random()*.25;
       g.fillStyle='#ffffff';
       g.beginPath();
@@ -680,16 +810,24 @@ function renderAsset(img, size){
 
 /* ================= サイズ・キャッシュ ================= */
 function baseSizeImages(){
+  // 画像シールの基準サイズ(大きさスライダーは含めない)
   const n=Math.max(images().length,1);
   const areaW=W-FRAME*2-60, areaH=H-TITLE_H-FOOTER_H-60;
   const cols=Math.max(1,Math.round(Math.sqrt(n*areaW/areaH)));
   const rows=Math.ceil(n/cols);
-  return Math.min(areaW/cols,areaH/rows)*.82*settings.size;
+  // 枚数が少なくても巨大にならないよう上限キャップ(市販シール風の適正サイズ)
+  return Math.min(areaW/cols,areaH/rows,350)*.82;
 }
-function unitSize(s){ return s.kind==='image' ? baseSizeImages() : DECO_UNIT; }
+function unitSize(s){
+  // 各シールは自分の基準サイズ(basePx)を記憶 → コピーしても大きさが変わらない
+  if(s.kind==='image') return Math.min(s.basePx||baseSizeImages(),290)*settings.size;
+  return DECO_UNIT;
+}
 function ensureCache(s){
-  const desired=Math.max(20,Math.round(unitSize(s)*s.scale));
-  const eF=settings.edgeF, fin=settings.finish, gb=settings.glossBand;
+  // キャッシュはSS倍の高解像度で作り、表示時に1/SSで描く
+  const desired=Math.max(20,Math.round(unitSize(s)*s.scale*SS));
+  const eF=settings.edgeF, gb=settings.glossBand;
+  const fin=(s.finish===undefined||s.finish===null)?settings.finish:s.finish;  // 個別キラキラ優先
   const stale = s.kind==='image'
     ? (Math.abs(desired-s.builtSize)>1 || s.builtEdge!==eF || s.builtFinish!==fin || s.builtGloss!==gb)
     : (Math.abs(desired-s.builtSize)>1);
@@ -697,12 +835,12 @@ function ensureCache(s){
     s.cache = s.kind==='image' ? renderPuffy(s.img,desired,eF,fin,gb) : renderAsset(s.img,desired);
     s.builtSize=desired; s.builtEdge=eF; s.builtFinish=fin; s.builtGloss=gb;
   }
-  return {c:s.cache, f:desired/s.builtSize};
+  return {c:s.cache, f:desired/s.builtSize/SS};
 }
 function stickerBox(s){
-  const desired=Math.max(20,Math.round(unitSize(s)*s.scale));
-  if(!s.cache) return {w:desired,h:desired};
-  const f=desired/s.builtSize;
+  const desired=Math.max(20,Math.round(unitSize(s)*s.scale*SS));
+  if(!s.cache) return {w:desired/SS,h:desired/SS};
+  const f=desired/s.builtSize/SS;
   return {w:s.cache.width*f, h:s.cache.height*f};
 }
 
@@ -716,7 +854,9 @@ function relayout(){
     const cols=Math.max(1,Math.round(Math.sqrt(imgs.length*aw/ah)));
     const rows=Math.ceil(imgs.length/cols);
     const cw=aw/cols, chh=ah/rows;
+    const bp=baseSizeImages();
     imgs.forEach((s,i)=>{
+      s.basePx=bp;
       const c=i%cols, r=Math.floor(i/cols);
       s.x=ax+cw*(c+.5)+(Math.random()-.5)*cw*.16;
       s.y=ay+chh*(r+.5)+(Math.random()-.5)*chh*.14;
@@ -731,26 +871,30 @@ function scatterDecos(){
   const ready = decoAssets.map((a,i)=>a.loaded?i:-1).filter(i=>i>=0);
   if(!ready.length) return;
   let placed=0;
-  for(let i=0;i<200 && placed<10;i++){
+  for(let i=0;i<300 && placed<10;i++){
     const x=FRAME+90+Math.random()*(W-FRAME*2-180);
     const y=TITLE_H+10+Math.random()*(H-TITLE_H-FOOTER_H-60);
+    const sc=1.6+Math.random()*1.0;
+    const myR=DECO_UNIT*sc*.55;          // 置こうとするデコ自身の半径
     let ok=true;
     for(const s of stickers){
-      const rr = s.kind==='image'
-        ? baseSizeImages()*s.scale*.58
-        : DECO_UNIT*s.scale*.7+40;
+      const rr = (s.kind==='image'
+        ? unitSize(s)*s.scale*.58
+        : DECO_UNIT*s.scale*.6) + myR*.8;  // 相手の半径+自分の半径で判定
       if((x-s.x)**2+(y-s.y)**2<rr*rr){ ok=false; break; }
     }
     if(!ok) continue;
     addAsset(ready[Math.floor(Math.random()*ready.length)],
-      {x, y, scale:1.6+Math.random()*1.0, rot:(Math.random()-.5)*.6, auto:true});
+      {x, y, scale:sc, rot:(Math.random()-.5)*.6, auto:true});
     placed++;
   }
 }
 
 /* ================= 描画 ================= */
 function draw(){
+  updateSelBar();
   const t=DESIGNS[design];
+  ctx.setTransform(SS,0,0,SS,0,0);   // 以降は論理座標(1000x1800)で描く
   ctx.clearRect(0,0,W,H);
 
   if(bgImage){
@@ -931,6 +1075,7 @@ function drawFooter(t){
   ctx.globalAlpha=1;
 }
 
+const HR = 28;   // ハンドルの見た目サイズ(大きめ)
 function drawSelection(s){
   const {w,h}=stickerBox(s);
   ctx.save();
@@ -938,15 +1083,15 @@ function drawSelection(s){
   ctx.strokeStyle='#7db8e8'; ctx.lineWidth=3; ctx.setLineDash([10,7]);
   roundRect(ctx,-w/2-8,-h/2-8,w+16,h+16,14); ctx.stroke(); ctx.setLineDash([]);
   ctx.strokeStyle='#7db8e8'; ctx.lineWidth=3;
-  ctx.beginPath(); ctx.moveTo(0,-h/2-8); ctx.lineTo(0,-h/2-44); ctx.stroke();
-  handleCircle(0,-h/2-62,'#7db8e8'); drawRotIcon(0,-h/2-62);
-  handleCircle(w/2+8,h/2+8,'#f78bb8'); drawResizeIcon(w/2+8,h/2+8);
-  handleCircle(-w/2-8,h/2+8,'#9b7fe0'); drawCopyIcon(-w/2-8,h/2+8);
-  handleCircle(w/2+8,-h/2-8,'#f2708a');
-  ctx.strokeStyle='#f2708a'; ctx.lineWidth=4; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(0,-h/2-8); ctx.lineTo(0,-h/2-50); ctx.stroke();
+  handleCircle(0,-h/2-78,'#7db8e8'); drawRotIcon(0,-h/2-78);
+  handleCircle(w/2+12,h/2+12,'#f78bb8'); drawResizeIcon(w/2+12,h/2+12);
+  handleCircle(-w/2-12,h/2+12,'#9b7fe0'); drawCopyIcon(-w/2-12,h/2+12);
+  handleCircle(w/2+12,-h/2-12,'#f2708a');
+  ctx.strokeStyle='#f2708a'; ctx.lineWidth=5; ctx.lineCap='round';
   ctx.beginPath();
-  ctx.moveTo(w/2+1,-h/2-15); ctx.lineTo(w/2+15,-h/2-1);
-  ctx.moveTo(w/2+15,-h/2-15); ctx.lineTo(w/2+1,-h/2-1);
+  ctx.moveTo(w/2+12-9,-h/2-12-9); ctx.lineTo(w/2+12+9,-h/2-12+9);
+  ctx.moveTo(w/2+12+9,-h/2-12-9); ctx.lineTo(w/2+12-9,-h/2-12+9);
   ctx.stroke();
   ctx.restore();
 }
@@ -954,31 +1099,31 @@ function handleCircle(x,y,color){
   ctx.save();
   ctx.shadowColor='rgba(0,0,0,.25)'; ctx.shadowBlur=6; ctx.shadowOffsetY=2;
   ctx.fillStyle='#fff';
-  ctx.beginPath(); ctx.arc(x,y,20,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(x,y,HR,0,7); ctx.fill();
   ctx.restore();
-  ctx.strokeStyle=color; ctx.lineWidth=3;
-  ctx.beginPath(); ctx.arc(x,y,20,0,7); ctx.stroke();
+  ctx.strokeStyle=color; ctx.lineWidth=4;
+  ctx.beginPath(); ctx.arc(x,y,HR,0,7); ctx.stroke();
 }
 function drawRotIcon(x,y){
-  ctx.strokeStyle='#7db8e8'; ctx.lineWidth=3.5; ctx.lineCap='round';
-  ctx.beginPath(); ctx.arc(x,y,9,-.4,Math.PI*1.4); ctx.stroke();
+  ctx.strokeStyle='#7db8e8'; ctx.lineWidth=4.5; ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(x,y,12,-.4,Math.PI*1.4); ctx.stroke();
   ctx.fillStyle='#7db8e8';
   ctx.beginPath();
-  ctx.moveTo(x+11,y-6); ctx.lineTo(x+3,y-9); ctx.lineTo(x+10,y-14); ctx.closePath(); ctx.fill();
+  ctx.moveTo(x+15,y-8); ctx.lineTo(x+4,y-12); ctx.lineTo(x+13,y-19); ctx.closePath(); ctx.fill();
 }
 function drawResizeIcon(x,y){
-  ctx.strokeStyle='#f78bb8'; ctx.lineWidth=3.5; ctx.lineCap='round';
-  ctx.beginPath(); ctx.moveTo(x-7,y-7); ctx.lineTo(x+7,y+7); ctx.stroke();
+  ctx.strokeStyle='#f78bb8'; ctx.lineWidth=4.5; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(x-10,y-10); ctx.lineTo(x+10,y+10); ctx.stroke();
   ctx.fillStyle='#f78bb8';
-  ctx.beginPath(); ctx.moveTo(x-10,y-10); ctx.lineTo(x-1,y-7); ctx.lineTo(x-7,y-1); ctx.closePath(); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(x+10,y+10); ctx.lineTo(x+1,y+7); ctx.lineTo(x+7,y+1); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x-14,y-14); ctx.lineTo(x-2,y-10); ctx.lineTo(x-10,y-2); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x+14,y+14); ctx.lineTo(x+2,y+10); ctx.lineTo(x+10,y+2); ctx.closePath(); ctx.fill();
 }
 function drawCopyIcon(x,y){
-  ctx.strokeStyle='#9b7fe0'; ctx.lineWidth=3; ctx.lineJoin='round';
-  ctx.strokeRect(x-8,y-8,10,10);
+  ctx.strokeStyle='#9b7fe0'; ctx.lineWidth=4; ctx.lineJoin='round';
+  ctx.strokeRect(x-11,y-11,14,14);
   ctx.fillStyle='#fff';
-  ctx.fillRect(x-3,y-3,11,11);
-  ctx.strokeRect(x-3,y-3,11,11);
+  ctx.fillRect(x-4,y-4,15,15);
+  ctx.strokeRect(x-4,y-4,15,15);
 }
 
 function starPath(c,cx,cy,r){
@@ -1011,25 +1156,27 @@ function toLocal(s,pt){
   const cos=Math.cos(-s.rot), sin=Math.sin(-s.rot);
   return {x:dx*cos-dy*sin, y:dx*sin+dy*cos};
 }
-function hitSticker(pt){
+function hitAll(pt){
+  const out=[];
   for(let i=stickers.length-1;i>=0;i--){
     const s=stickers[i];
     const {w,h}=stickerBox(s);
     const l=toLocal(s,pt);
-    if(Math.abs(l.x)<w/2+6 && Math.abs(l.y)<h/2+6) return s;
+    if(Math.abs(l.x)<w/2+6 && Math.abs(l.y)<h/2+6) out.push(s);
   }
-  return null;
+  return out; // 上→下の順
 }
+function hitSticker(pt){ return hitAll(pt)[0]||null; }
 function hitHandle(pt){
   const s=sel(); if(!s) return null;
   const {w,h}=stickerBox(s);
   const l=toLocal(s,pt);
-  const R=32;
+  const R=44;  // 当たり判定も大きめ
   const near=(x,y)=>((l.x-x)**2+(l.y-y)**2)<R*R;
-  if(near(0,-h/2-62)) return 'rotate';
-  if(near(w/2+8,h/2+8)) return 'resize';
-  if(near(-w/2-8,h/2+8)) return 'copy';
-  if(near(w/2+8,-h/2-8)) return 'delete';
+  if(near(0,-h/2-78)) return 'rotate';
+  if(near(w/2+12,h/2+12)) return 'resize';
+  if(near(-w/2-12,h/2+12)) return 'copy';
+  if(near(w/2+12,-h/2-12)) return 'delete';
   return null;
 }
 function bringToFront(s){
@@ -1045,6 +1192,9 @@ function duplicate(s){
   if(copy.kind==='image') renderThumbs();
   draw();
 }
+
+let pending=null;     // タップ判定用 {ids, prevSel, x, y}
+let dragTarget=null;
 
 canvas.addEventListener('pointerdown', e=>{
   const pt=toCanvas(e);
@@ -1062,14 +1212,13 @@ canvas.addEventListener('pointerdown', e=>{
     canvas.setPointerCapture(e.pointerId);
     return;
   }
-  const s=hitSticker(pt);
-  if(s){
-    bringToFront(s);
-    selId=s.id;
-    dragOff={x:pt.x-s.x, y:pt.y-s.y};
-    mode='move'; interacting=true;
+  const hits=hitAll(pt);
+  if(hits.length){
+    dragTarget=hits[0];
+    dragOff={x:pt.x-dragTarget.x, y:pt.y-dragTarget.y};
+    pending={ids:hits.map(q=>q.id), prevSel:selId, x:pt.x, y:pt.y};
+    mode='maybe';   // タップかドラッグかはまだ分からない
     canvas.setPointerCapture(e.pointerId);
-    draw();
   } else if(selId!==-1){
     selId=-1; draw();
   }
@@ -1081,17 +1230,44 @@ canvas.addEventListener('pointermove', e=>{
     canvas.style.cursor = hitHandle(pt) ? 'pointer' : (hitSticker(pt)?'grab':'default');
     return;
   }
-  const s=sel(); if(!s) return;
-  if(mode==='move'){ s.x=pt.x-dragOff.x; s.y=pt.y-dragOff.y; }
-  else if(mode==='rotate'){ s.rot=Math.atan2(pt.y-s.y,pt.x-s.x)-rotStart; }
-  else if(mode==='resize'){
-    const dist=Math.hypot(pt.x-s.x,pt.y-s.y);
-    s.scale=Math.min(3,Math.max(.25,dist/resizeStart));
+  if(mode==='maybe'){
+    if(Math.hypot(pt.x-pending.x, pt.y-pending.y)>6){
+      // ドラッグ開始:指の下の一番上のシールを前面に出して動かす
+      mode='move'; interacting=true;
+      selId=dragTarget.id;
+      bringToFront(dragTarget);
+    } else return;
+  }
+  if(mode==='move'){
+    if(!dragTarget) return;
+    dragTarget.x=pt.x-dragOff.x; dragTarget.y=pt.y-dragOff.y;
+  } else {
+    const s=sel(); if(!s) return;
+    if(mode==='rotate'){ s.rot=Math.atan2(pt.y-s.y,pt.x-s.x)-rotStart; }
+    else if(mode==='resize'){
+      const dist=Math.hypot(pt.x-s.x,pt.y-s.y);
+      s.scale=Math.min(3,Math.max(.25,dist/resizeStart));
+    }
   }
   draw();
 });
 canvas.addEventListener('pointerup', ()=>{
-  if(mode){ interacting=false; mode=null; draw(); }
+  if(mode==='maybe' && pending){
+    // 動かさずに離した=タップ → 重なっている場合は下のシールへ順番に切り替え
+    const ids=pending.ids.filter(id=>stickers.some(s=>s.id===id));
+    const idx=ids.indexOf(pending.prevSel);
+    selId = (idx>=0 && ids.length>1) ? ids[(idx+1)%ids.length] : ids[0];
+    draw();
+  } else if(mode){
+    interacting=false; draw();
+  }
+  mode=null; pending=null; dragTarget=null;
+  updateTouchAction();
+});
+canvas.addEventListener('pointercancel', ()=>{
+  if(mode){ interacting=false; draw(); }
+  mode=null; pending=null; dragTarget=null;
+  updateTouchAction();
 });
 canvas.addEventListener('wheel', e=>{
   const pt=toCanvas(e);
@@ -1115,6 +1291,57 @@ document.querySelectorAll('.design').forEach(el=>{
 $('create').addEventListener('click', ()=>{
   selId=-1; updateTouchAction(); relayout(); draw();
 });
+$('align').addEventListener('click', ()=>{
+  // きれいに整列:サイズ比はいじらず行ごとに並べる(回転だけまっすぐに)
+  // 台紙に入りきらない場合のみ、全シールを同じ比率で少しだけ縮めて必ず収める
+  const imgs=images();
+  if(!imgs.length){ return; }
+  const gap=18, availW=W-(FRAME+40)*2;
+  const areaTop=TITLE_H+10, areaH=H-areaTop-FOOTER_H-30;
+
+  const packRows=()=>{
+    const rowsArr=[]; let cur=[], curW=0;
+    for(const s of imgs){
+      const b=stickerBox(s);
+      if(cur.length && curW+gap+b.w>availW){ rowsArr.push(cur); cur=[]; curW=0; }
+      cur.push({s,w:b.w,h:b.h});
+      curW += (cur.length>1?gap:0)+b.w;
+    }
+    if(cur.length) rowsArr.push(cur);
+    const rowHs=rowsArr.map(r=>Math.max(...r.map(o=>o.h)));
+    const totalH=rowHs.reduce((a,b)=>a+b,0);
+    const maxRowW=Math.max(...rowsArr.map(r=>r.reduce((a,o)=>a+o.w,0)+gap*(r.length-1)));
+    return {rowsArr,rowHs,totalH,maxRowW};
+  };
+
+  // はみ出すなら全体を同率で縮めて再パック(比率・相対サイズは維持)
+  let L=packRows();
+  for(let iter=0; iter<4; iter++){
+    const over=Math.max(L.maxRowW/availW,
+      (L.totalH+10*(L.rowsArr.length+1))/areaH, 1);
+    if(over<=1.001) break;
+    const f=.98/over;
+    imgs.forEach(s=>{ s.scale*=f; });
+    L=packRows();
+  }
+
+  const vGap=Math.max(10,(areaH-L.totalH)/(L.rowsArr.length+1));
+  let y=areaTop+vGap;
+  L.rowsArr.forEach((row,ri)=>{
+    const rw=row.reduce((a,o)=>a+o.w,0)+gap*(row.length-1);
+    let x=Math.max(FRAME+20,(W-rw)/2);
+    row.forEach(o=>{
+      o.s.x=x+o.w/2;
+      o.s.y=y+L.rowHs[ri]/2;
+      o.s.rot=0;
+      x+=o.w+gap;
+    });
+    y+=L.rowHs[ri]+vGap;
+  });
+  // 自動でまいたデコは、新しいすきまに撒き直す(手で置いたデコは動かさない)
+  if(settings.deco) scatterDecos();
+  selId=-1; updateTouchAction(); draw();
+});
 $('title').addEventListener('input', draw);
 $('catch').addEventListener('input', draw);
 $('bgPick').addEventListener('click', ()=> $('bgfile').click());
@@ -1131,7 +1358,7 @@ $('textColor').addEventListener('input', draw);
 $('useTextColor').addEventListener('change', draw);
 $('size').addEventListener('input', ()=>{
   const v=+$('size').value;
-  $('sizeVal').textContent=v<80?'小さめ':v>120?'大きめ':'標準';
+  $('sizeVal').textContent=v<50?'ミニ':v<80?'小さめ':v>120?'大きめ':'標準';
   interacting=true; draw();
 });
 $('size').addEventListener('change', ()=>{ interacting=false; draw(); });
@@ -1145,12 +1372,39 @@ $('shadow').addEventListener('change', draw);
 $('finish').addEventListener('change', draw);
 $('glossBand').addEventListener('change', draw);
 $('tagHole').addEventListener('change', draw);
+
+/* タブ切替 */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(q=>q.classList.toggle('on', q===t));
+    document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on', p.id===t.dataset.pane));
+  });
+});
+
+/* 選択中シールだけのキラキラ(プルダウン) */
+function updateSelBar(){
+  const bar=document.getElementById('selbar');
+  const slf=document.getElementById('selFinish');
+  const s=sel();
+  const on = s && s.kind==='image';
+  bar.classList.toggle('off', !on);
+  slf.disabled=!on;
+  bar.querySelector('.lbl').textContent = on ? '✨ このシールだけ:' : '✨ シールをタップで選ぶと→';
+  const cur = on ? ((s.finish===undefined||s.finish===null)?'':s.finish) : '';
+  if(slf.value!==cur) slf.value=cur;
+}
+document.getElementById('selFinish').addEventListener('change', e=>{
+  const s=sel(); if(!s || s.kind!=='image') return;
+  if(e.target.value==='') delete s.finish; else s.finish=e.target.value;
+  s.cache=null; draw();
+});
 $('deco').addEventListener('change', ()=>{ scatterDecos(); draw(); });
 $('mockup').addEventListener('click', ()=>{
   try{
   const keep=selId; selId=-1; draw();
-  const MW=1500, MH=1980;
-  const M=mk(MW,MH), m=M.getContext('2d');
+  const MW=1500, MH=1980, MS=1.6;   // MS=高解像度係数
+  const M=mk(MW*MS,MH*MS), m=M.getContext('2d');
+  m.scale(MS,MS);
 
   // スタジオ風の背景
   const bgG=m.createLinearGradient(0,0,MW,MH);
@@ -1272,5 +1526,5 @@ if(document.fonts && document.fonts.ready){
 updateTouchAction();
 draw();
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a501bb4add699696',t:'MTc5MjkzNjY1OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
