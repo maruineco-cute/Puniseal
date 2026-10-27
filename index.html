@@ -55,7 +55,7 @@
       conic-gradient(#f2f6fa 0 25%,#fff 0 50%,#f2f6fa 0 75%,#fff 0) 0 0/16px 16px;
     border:2px solid #e3edf5; display:flex; align-items:center; justify-content:center; overflow:hidden;
   }
-  .thumb img{max-width:88%; max-height:88%;}
+  .thumb img{width:88%; height:88%; object-fit:contain;}
   .thumb .x{
     position:absolute; top:1px; right:1px; width:18px; height:18px; border-radius:50%;
     background:#f9a8c9; color:#fff; border:none; font-size:11px; line-height:1; cursor:pointer; padding:0;
@@ -98,7 +98,7 @@
     padding:3px;
   }
   .pal:hover{transform:scale(1.12); border-color:#f9a8c9;}
-  .pal img{max-width:100%; max-height:100%;}
+  .pal img{width:100%; height:100%; object-fit:contain;}
   .designs{display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap;}
   .design{
     width:58px; height:58px; border-radius:14px; cursor:pointer; border:3px solid transparent;
@@ -147,7 +147,8 @@
   .btn-create{background:linear-gradient(135deg,#8ec9f0,#7db8e8); padding:8px; font-size:.82rem; border-radius:12px; margin-bottom:10px;}
   .btn-align{background:linear-gradient(135deg,#7fd4b0,#54bd92); padding:8px; font-size:.82rem; border-radius:12px; margin-bottom:10px;}
   .btn-dl{background:linear-gradient(135deg,#f9a8c9,#f28bb5);}
-  .btn-mock{background:linear-gradient(135deg,#b8a7ea,#9b7fe0); margin-top:10px;}
+  .btn-mock{background:linear-gradient(135deg,#b8a7ea,#9b7fe0);}
+  .dlrow{width:90%; max-width:500px; display:flex; flex-direction:column; gap:10px; margin:0 auto;}
   .btn-sample{
     background:#fff; color:#8aa0b5; border:2px dashed #c8d8e6; font-size:.8rem; padding:9px; margin-top:10px;
   }
@@ -190,9 +191,9 @@
 <div class="wrap">
   <div class="panel">
     <div class="tabs">
-      <button class="tab on" data-pane="pane-sozai">🧸 素材</button>
+      <button class="tab on" data-pane="pane-sozai">📷 画像</button>
+      <button class="tab" data-pane="pane-deco">🧸 素材</button>
       <button class="tab" data-pane="pane-daishi">🎨 台紙</button>
-      <button class="tab" data-pane="pane-shitsukan">✨ 質感</button>
     </div>
 
     <div class="pane on" id="pane-sozai">
@@ -206,17 +207,53 @@
     <div class="note">※ 透過PNGがおすすめ(最大20種類)。<b>サムネをタップすると台紙に追加</b>…台紙で消しちゃっても何度でも追加できます。×は一覧からの削除</div>
     <button class="btn-sample" id="sample">🧸 サンプル素材で試してみる</button>
 
-    <div class="step"><span class="num">2</span>よはくに貼るデコ素材</div>
+    <div class="step"><span class="num">2</span>シールのサイズ・質感</div>
+    <div class="ctrl">
+      <label>シールの大きさ <span class="val" id="sizeVal">標準</span></label>
+      <input type="range" id="size" min="25" max="150" value="100">
+    </div>
+    <div class="ctrl">
+      <label>ふち(余白)の太さ <span class="val" id="edgeVal">標準</span></label>
+      <input type="range" id="edge" min="2" max="14" value="7">
+    </div>
+    <div class="ctrl">
+      <label>✨ 仕上げ(キラキラ加工・ぜんぶのシール)</label>
+      <select id="finish">
+        <option value="none">ノーマル</option>
+        <option value="glitter">ラメ(こまかい)</option>
+        <option value="holo">大粒レインボー ●まる</option>
+        <option value="holo_star">大粒レインボー ★ほし</option>
+        <option value="holo_heart">大粒レインボー ♡ハート</option>
+        <option value="holo_mix">大粒レインボー MIX(●★♡)</option>
+        <option value="both">両方のせ(ラメ+MIX)</option>
+      </select>
+    </div>
+    <div class="ctrl toggle-row">
+      <span>影をつける</span>
+      <label class="switch"><input type="checkbox" id="shadow"><span class="sl"></span></label>
+    </div>
+    <div class="ctrl toggle-row">
+      <span>斜めのツヤ帯(横断する光)</span>
+      <label class="switch"><input type="checkbox" id="glossBand" checked><span class="sl"></span></label>
+    </div>
+    <div class="ctrl toggle-row">
+      <span>タグ穴(吊り下げ穴)</span>
+      <label class="switch"><input type="checkbox" id="tagHole" checked><span class="sl"></span></label>
+    </div>
+    </div><!-- /pane-sozai -->
+
+    <div class="pane" id="pane-deco">
+    <div class="step"><span class="num">3</span>よはくに貼るデコ素材</div>
     <div class="palette" id="palette"></div>
     <div class="note">タップで台紙に追加。台紙上で動かす・大きさ変更・⧉コピーも自由!</div>
     <div class="ctrl toggle-row" style="margin-top:10px;">
       <span>🎲ランダム配置のとき、すきまにデコもまく</span>
       <label class="switch"><input type="checkbox" id="deco" checked><span class="sl"></span></label>
     </div>
-    </div><!-- /pane-sozai -->
+    </div><!-- /pane-deco -->
 
     <div class="pane" id="pane-daishi">
-    <div class="step"><span class="num">3</span>シール台紙のデザイン</div>
+    <div class="step"><span class="num">4</span>シール台紙のデザイン</div>
     <div class="designs">
       <div class="design d-pink sel" data-d="pink" title="いちごみるく"></div>
       <div class="design d-blue" data-d="blue" title="そーだ"></div>
@@ -254,48 +291,11 @@
     </div>
     </div><!-- /pane-daishi -->
 
-    <div class="pane" id="pane-shitsukan">
-    <div class="step"><span class="num">4</span>シールのサイズ・質感</div>
-    <div class="ctrl">
-      <label>シールの大きさ <span class="val" id="sizeVal">標準</span></label>
-      <input type="range" id="size" min="25" max="150" value="100">
-    </div>
-    <div class="ctrl">
-      <label>ふち(余白)の太さ <span class="val" id="edgeVal">標準</span></label>
-      <input type="range" id="edge" min="2" max="14" value="7">
-    </div>
-    <div class="ctrl">
-      <label>✨ 仕上げ(キラキラ加工・ぜんぶのシール)</label>
-      <select id="finish">
-        <option value="none">ノーマル</option>
-        <option value="glitter">ラメ(こまかい)</option>
-        <option value="holo">大粒レインボー ●まる</option>
-        <option value="holo_star">大粒レインボー ★ほし</option>
-        <option value="holo_heart">大粒レインボー ♡ハート</option>
-        <option value="holo_mix">大粒レインボー MIX(●★♡)</option>
-        <option value="both">両方のせ(ラメ+MIX)</option>
-      </select>
-    </div>
-    <div class="ctrl toggle-row">
-      <span>影をつける</span>
-      <label class="switch"><input type="checkbox" id="shadow"><span class="sl"></span></label>
-    </div>
-    <div class="ctrl toggle-row">
-      <span>斜めのツヤ帯(横断する光)</span>
-      <label class="switch"><input type="checkbox" id="glossBand" checked><span class="sl"></span></label>
-    </div>
-    <div class="ctrl toggle-row">
-      <span>タグ穴(吊り下げ穴)</span>
-      <label class="switch"><input type="checkbox" id="tagHole" checked><span class="sl"></span></label>
-    </div>
-    </div><!-- /pane-shitsukan -->
 
     <div style="display:flex; gap:8px;">
       <button class="btn-create" id="create">🎲 ランダム配置</button>
       <button class="btn-align" id="align">📏 きれいに整列</button>
     </div>
-    <button class="btn-dl" id="download">⬇️ ダウンロード</button>
-    <button class="btn-mock" id="mockup">🛍️ 店頭商品風モックアップを保存</button>
   </div>
 
   <div class="stage">
@@ -313,6 +313,10 @@
       </select>
     </div>
     <canvas id="sheet" width="1000" height="1800"></canvas>
+    <div class="dlrow">
+      <button class="btn-dl" id="download">⬇️ ダウンロード</button>
+      <button class="btn-mock" id="mockup">🛍️ 店頭商品風モックアップを保存</button>
+    </div>
     <div class="hint">
       シールを<b>タップで選択</b> → ドラッグで移動 ✨<br>
       <b>↻</b> 回転 ／ <b>↘</b> 大きさ ／ <b>⧉</b> コピーして増やす ／ <b>×</b> 削除<br>
@@ -358,7 +362,7 @@ let design = 'pink';
 const TITLE_COLORS = ['#f78bb8','#7db8e8','#b89ae8','#f0b35e','#6fc9a5'];
 
 /* ================= デコ素材 ================= */
-const DECO_COUNT = 56;
+const DECO_COUNT = 73;
 const decoAssets = [];   // {img, loaded}
 for(let i=0;i<DECO_COUNT;i++){
   const img = new Image();
@@ -1526,5 +1530,5 @@ if(document.fonts && document.fonts.ready){
 updateTouchAction();
 draw();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a501bb4add699696',t:'MTc5MjkzNjY1OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
