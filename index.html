@@ -909,13 +909,32 @@ function expandSil(sil,r){
   x.fillStyle='#fff'; x.fillRect(0,0,out.width,out.height);
   return out;
 }
+// iPad/iPhoneのSafariは ctx.filter(blur) 未対応 → 縮小→拡大スムージングで代用
+const CANVAS_FILTER_OK = 'filter' in CanvasRenderingContext2D.prototype;
+function blurImg(src, blur){
+  if(blur<=0) return src;
+  const w=src.width, h=src.height;
+  const f=Math.max(1.2, blur);                 // 縮小率 ≒ ぼかし量
+  const sw=Math.max(1,Math.round(w/f)), sh=Math.max(1,Math.round(h/f));
+  const a=mk(sw,sh), ax=a.getContext('2d');
+  ax.imageSmoothingEnabled=true; ax.imageSmoothingQuality='high';
+  ax.drawImage(src,0,0,sw,sh);
+  const b=mk(w,h), bx=b.getContext('2d');
+  bx.imageSmoothingEnabled=true; bx.imageSmoothingQuality='high';
+  bx.drawImage(a,0,0,w,h);
+  return b;
+}
 function rim(sil,dx,dy,blur){
   const c=mk(sil.width,sil.height), x=c.getContext('2d');
   x.drawImage(sil,0,0);
   x.globalCompositeOperation='destination-out';
-  x.filter=`blur(${blur}px)`;
-  x.drawImage(sil,dx,dy);
-  x.filter='none';
+  if(CANVAS_FILTER_OK){
+    x.filter=`blur(${blur}px)`;
+    x.drawImage(sil,dx,dy);
+    x.filter='none';
+  }else{
+    x.drawImage(blurImg(sil,blur),dx,dy);
+  }
   return c;
 }
 function tintSil(sil,color){
@@ -2059,5 +2078,5 @@ if(document.fonts && document.fonts.ready){
 updateTouchAction();
 draw();
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a5194fdc8c02739b',t:'MTc5MzE4MzkxNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
