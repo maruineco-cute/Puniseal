@@ -76,18 +76,21 @@
   .pane.on{display:block;}
   /* 選択中シールのキラキラ(プルダウン1行・常に表示=画面がズレない) */
   .selbar{
-    display:flex; margin:0 auto 10px; width:90%; max-width:500px;
+    display:flex; flex-wrap:wrap; margin:0 auto 10px; width:90%; max-width:500px;
     background:#fff; border:2px solid #f3d9e6; border-radius:14px; padding:6px 10px;
-    gap:8px; align-items:center;
+    gap:6px 8px; align-items:center;
     box-shadow:0 4px 14px rgba(190,160,210,.18);
   }
-  .selbar .lbl{flex:none; font-size:.74rem; font-weight:700; color:#c88bac;}
+  .selbar .lbl{flex:1 0 100%; font-size:.74rem; font-weight:700; color:#c88bac;}
   .selbar select{
-    flex:1; min-width:0; font-family:inherit; font-size:.8rem; font-weight:700; color:#9b8ab8;
+    flex:1 1 0; min-width:0; font-family:inherit; font-size:.8rem; font-weight:700; color:#9b8ab8;
     border:2px solid #e8dced; border-radius:10px; padding:7px 8px; background:#fdf8fc;
   }
   .selbar.off{opacity:.55;}
   .selbar.off select{pointer-events:none;}
+  .selbar #selFlip{flex:1 1 0; min-width:0; background:#fff; border:2px solid #aed3ee; border-radius:10px;
+    padding:7px 8px; font-size:.8rem; font-weight:700; color:#5a93c0; cursor:pointer;}
+  .selbar.off #selFlip{pointer-events:none;}
   .palette{
     display:grid; grid-template-columns:repeat(6,1fr); gap:6px;
     max-height:190px; overflow-y:auto; padding:8px; background:#fbf7fb; border-radius:14px;
@@ -148,7 +151,13 @@
   .btn-align{background:linear-gradient(135deg,#7fd4b0,#54bd92); padding:8px; font-size:.82rem; border-radius:12px; margin-bottom:10px;}
   .btn-dl{background:linear-gradient(135deg,#f9a8c9,#f28bb5);}
   .btn-mock{background:linear-gradient(135deg,#b8a7ea,#9b7fe0);}
+  .mockrow{display:flex; gap:6px;}
+  .mockrow button{flex:1 1 0; min-width:0; font-size:.72rem; padding:8px 1px; line-height:1.5;}
   .dlrow{width:90%; max-width:500px; display:flex; flex-direction:column; gap:10px; margin:0 auto;}
+  .btn-mock2{background:linear-gradient(135deg,#f0b56e,#e89b4f); font-size:.85rem; padding:11px 2px;}
+  .btn-mock3{background:linear-gradient(135deg,#6fc9b0,#4fb193); font-size:.85rem; padding:11px 2px;}
+  .btn-mock4{background:linear-gradient(135deg,#f06292,#ab47bc); font-size:.85rem; padding:11px 2px;}
+
   .btn-sample{
     background:#fff; color:#8aa0b5; border:2px dashed #c8d8e6; font-size:.8rem; padding:9px; margin-top:10px;
   }
@@ -163,6 +172,11 @@
     max-width:560px; text-align:center; line-height:1.8;
   }
   .hint b{color:#7db8e8;}
+  /* ドラッグ中に青い選択ハイライトが出ないように */
+  canvas#sheet, .stage, .selbar, .hint, .palette, .thumbs, .tabs{
+    -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;
+  }
+  html{ -webkit-tap-highlight-color:transparent; }
   .modal{
     position:fixed; inset:0; background:rgba(60,50,80,.55); display:none;
     align-items:center; justify-content:center; z-index:50; padding:18px;
@@ -178,6 +192,23 @@
     display:block; background:linear-gradient(135deg,#f9a8c9,#f28bb5); color:#fff;
     border-radius:14px; padding:12px; font-weight:700; text-decoration:none; margin-bottom:8px;
   }
+  .modal button.share{
+    display:block; width:100%; background:linear-gradient(135deg,#7cc8f0,#53a9dd); color:#fff;
+    border:none; border-radius:14px; padding:12px; font-size:1rem; font-weight:700;
+    font-family:inherit; cursor:pointer; margin-bottom:8px;
+  }
+  #resumeBar{
+    position:fixed; top:10px; left:50%; transform:translateX(-50%); z-index:99;
+    background:#fff; border:2px solid #f7bfd6; border-radius:16px; padding:10px 14px;
+    box-shadow:0 6px 24px rgba(220,150,180,.35); display:flex; gap:8px; align-items:center;
+    font-size:.82rem; font-weight:700; color:#c87ba2; width:max-content; max-width:94vw;
+  }
+  #resumeBar button{
+    border:none; border-radius:10px; padding:8px 13px; font-family:inherit;
+    font-size:.82rem; font-weight:700; cursor:pointer;
+  }
+  #resumeBar .yes{background:linear-gradient(135deg,#f9a8c9,#f28bb5); color:#fff;}
+  #resumeBar .no{background:#eef3f7; color:#90a4b5;}
   .modal button.close{background:#d4e2ee; color:#5d6b7c;}
   @media (max-width:780px){ .panel{flex:1 1 100%;} }
 </style>
@@ -206,6 +237,15 @@
     <div class="thumbs" id="thumbs"></div>
     <div class="note">※ 透過PNGがおすすめ(最大20種類)。<b>サムネをタップすると台紙に追加</b>…台紙で消しちゃっても何度でも追加できます。×は一覧からの削除</div>
     <button class="btn-sample" id="sample">🧸 サンプル素材で試してみる</button>
+    <div class="ctrl" style="margin-top:12px;">
+      <label>🔤 文字シールを作る(ぷっくり文字になるよ)</label>
+      <div style="display:flex; gap:6px;">
+        <input type="text" id="txtStk" placeholder="すきなことば" maxlength="12" style="flex:1; min-width:0;">
+        <input type="color" id="txtStkColor" value="#f78bb8"
+          style="flex:0 0 46px; width:46px; border:2px solid #dce9f3; border-radius:8px; background:#fff; padding:2px;">
+        <button type="button" id="txtStkAdd" style="flex:0 0 72px; background:linear-gradient(135deg,#f9a8c9,#c9a8f0); font-size:.8rem; padding:9px 2px;">追加</button>
+      </div>
+    </div>
 
     <div class="step"><span class="num">2</span>シールのサイズ・質感</div>
     <div class="ctrl">
@@ -228,6 +268,16 @@
         <option value="both">両方のせ(ラメ+MIX)</option>
       </select>
     </div>
+    <div class="ctrl">
+      <label>💎 大粒ラメのカラー</label>
+      <select id="lameColor">
+        <option value="rainbow">🌈 レインボー</option>
+        <option value="pink">🩷 ピンク系</option>
+        <option value="blue">🩵 ブルー系</option>
+        <option value="purple">💜 パープル系</option>
+        <option value="gold">💛 ゴールド系</option>
+      </select>
+    </div>
     <div class="ctrl toggle-row">
       <span>影をつける</span>
       <label class="switch"><input type="checkbox" id="shadow"><span class="sl"></span></label>
@@ -248,7 +298,7 @@
     <div class="note">タップで台紙に追加。台紙上で動かす・大きさ変更・⧉コピーも自由!</div>
     <div class="ctrl toggle-row" style="margin-top:10px;">
       <span>🎲ランダム配置のとき、すきまにデコもまく</span>
-      <label class="switch"><input type="checkbox" id="deco" checked><span class="sl"></span></label>
+      <label class="switch"><input type="checkbox" id="deco"><span class="sl"></span></label>
     </div>
     </div><!-- /pane-deco -->
 
@@ -273,6 +323,15 @@
         <button type="button" id="bgClear" style="background:#f8b0b0;font-size:.8rem;padding:9px;flex:0 0 92px;">もどす</button>
       </div>
       <input type="file" id="bgfile" accept="image/*">
+    </div>
+    <div class="ctrl" id="bgAdjust" style="display:none;">
+      <label>背景画像の調整(見せたい部分が切れないように)</label>
+      <label style="font-size:.78rem;">🔍 大きさ</label>
+      <input type="range" id="bgScale" min="100" max="220" value="100">
+      <label style="font-size:.78rem;">↔️ よこ位置</label>
+      <input type="range" id="bgPosX" min="0" max="100" value="50">
+      <label style="font-size:.78rem;">↕️ たて位置</label>
+      <input type="range" id="bgPosY" min="0" max="100" value="50">
     </div>
     <div class="ctrl toggle-row">
       <span>文字色を自分で選ぶ
@@ -311,11 +370,17 @@
         <option value="holo_mix">大粒 MIX</option>
         <option value="both">両方のせ</option>
       </select>
+      <button id="selFlip" type="button" title="左右反転">↔️ 左右反転</button>
     </div>
     <canvas id="sheet" width="1000" height="1800"></canvas>
     <div class="dlrow">
       <button class="btn-dl" id="download">⬇️ ダウンロード</button>
-      <button class="btn-mock" id="mockup">🛍️ 店頭商品風モックアップを保存</button>
+      <div class="mockrow">
+        <button class="btn-mock" id="mockup">🛍️<br>パッケージ</button>
+        <button class="btn-mock2" id="mockShop">🏪<br>店頭</button>
+        <button class="btn-mock3" id="mockDesk">📎<br>デスク</button>
+        <button class="btn-mock4" id="mockSNS">📱<br>SNS</button>
+      </div>
     </div>
     <div class="hint">
       シールを<b>タップで選択</b> → ドラッグで移動 ✨<br>
@@ -330,6 +395,7 @@
     <img id="saveImg" alt="できあがり">
     <div class="note2">📱 スマホは画像を長押しでも保存できます</div>
     <a class="save" id="saveLink" download="puni-seal.png">💾 画像を保存</a>
+    <button class="share" id="saveShare" type="button">📤 SNS・アプリへ共有</button>
     <button class="close" id="saveClose">とじる</button>
   </div>
 </div>
@@ -371,6 +437,10 @@ for(let i=0;i<DECO_COUNT;i++){
   img.src = `assets/deco/deco_${String(i).padStart(2,'0')}.png`;
   decoAssets.push(entry);
 }
+const deskBg = new Image();
+deskBg.src = 'assets/desk_bg.jpg';
+
+
 // パレットUI
 {
   const pal = $('palette');
@@ -407,6 +477,7 @@ const settings = {
   get title(){ return $('title').value; },
   get catch(){ return $('catch').value; },
   get finish(){ return $('finish').value; },
+  get lameColor(){ return $('lameColor').value; },
   get glossBand(){ return $('glossBand').checked; },
   get tagHole(){ return $('tagHole').checked; },
 };
@@ -441,6 +512,33 @@ function pushImage(img, url){
   renderThumbs();
   placeImage(entry);   // 1枚だけ台紙に置く(他のシールは動かさない)
 }
+// 🔤 文字シール:入力テキスト→透過PNG化→通常の画像シールとして追加
+$('txtStkAdd').addEventListener('click', ()=>{
+  const t=$('txtStk').value.trim();
+  if(!t){ alert('文字を入れてください✏️'); return; }
+  if(lib.length>=20){ alert('画像は最大20種類までです🙏'); return; }
+  const col=$('txtStkColor').value;
+  const fs=170, pad=56;
+  const meas=mk(10,10).getContext('2d');
+  meas.font=`900 ${fs}px ${TITLE_FONT}`;
+  const tw=Math.ceil(meas.measureText(t).width);
+  const c=mk(tw+pad*2, fs+pad*2);
+  const x=c.getContext('2d');
+  x.font=`900 ${fs}px ${TITLE_FONT}`;
+  x.textAlign='center'; x.textBaseline='middle';
+  x.lineJoin='round';
+  // 白フチ→本体色の2層でシールっぽく
+  x.strokeStyle='#ffffff'; x.lineWidth=30;
+  x.strokeText(t, c.width/2, c.height/2+8);
+  x.fillStyle=col;
+  x.fillText(t, c.width/2, c.height/2+8);
+  const url=c.toDataURL('image/png');
+  const im=new Image();
+  im.onload=()=> pushImage(im, url);
+  im.src=url;
+  $('txtStk').value='';
+});
+
 function placeImage(entry){
   if(images().length>=20){ alert('台紙の画像シールは最大20枚までです🙏'); return; }
   const bp = images()[0]?.basePx || baseSizeImages();
@@ -482,7 +580,7 @@ function addAsset(i, opts={}){
   if(!a || !a.loaded) return;
   const cx = FRAME+80+Math.random()*(W-FRAME*2-160);
   const cy = TITLE_H+40+Math.random()*(H-TITLE_H-FOOTER_H-120);
-  const s = {id:nextId++, kind:'asset', img:a.img, thumbURL:null,
+  const s = {id:nextId++, kind:'asset', deco:i, img:a.img, thumbURL:null,
     x:opts.x??cx, y:opts.y??cy, rot:opts.rot??(Math.random()-.5)*.5,
     scale:opts.scale??1, cache:null, builtSize:0, builtEdge:0, auto:opts.auto??false};
   stickers.push(s);
@@ -588,7 +686,7 @@ function sampleCat(){
 
 /* ================= ぷっくり加工コア =================
    ふちはほぼ透明。シャドウ+ベベル&エンボスの光と影だけで立体感。光源は左上。 */
-function puffify(base, edge, d, bl, finish='none', glossBand=true){
+function puffify(base, edge, d, bl, finish='none', glossBand=true, lum=1){
   const cw=base.width, chh=base.height;
 
   const sil = mk(cw,chh);
@@ -610,7 +708,7 @@ function puffify(base, edge, d, bl, finish='none', glossBand=true){
 
   // 3) エンボス(イラスト輪郭の内側の盛り上がり)
   const d2=Math.max(2,d*.8), bl2=Math.max(1,bl*.7);
-  o.save(); o.globalAlpha=.55;
+  o.save(); o.globalAlpha=.55*lum;
   o.drawImage(tintSil(rim(sil,d2,d2,bl2),'#ffffff'),0,0);
   o.restore();
   o.save(); o.globalAlpha=.22;
@@ -629,21 +727,27 @@ function puffify(base, edge, d, bl, finish='none', glossBand=true){
   o.restore();
 
   // 5) ツヤ(左上の反射光+斜めグロス)
+  // 斜めグロス帯:中央寄りに配置(ツヤ玉と重ならない位置)。
+  // 暗いイラストでも帯だけは見えるように、減光のかかり方を弱める
+  if(glossBand){
+    const band = mk(cw,chh);
+    { const g=band.getContext('2d');
+      const lg=g.createLinearGradient(0,0,cw*.9,chh);
+      lg.addColorStop(.30,'rgba(255,255,255,0)');
+      lg.addColorStop(.31,'rgba(255,255,255,.5)');
+      lg.addColorStop(.40,'rgba(255,255,255,.45)');
+      lg.addColorStop(.41,'rgba(255,255,255,0)');
+      lg.addColorStop(.56,'rgba(255,255,255,0)');
+      lg.addColorStop(.57,'rgba(255,255,255,.18)');
+      lg.addColorStop(.62,'rgba(255,255,255,.16)');
+      lg.addColorStop(.63,'rgba(255,255,255,0)');
+      g.fillStyle=lg; g.fillRect(0,0,cw,chh);
+      g.globalCompositeOperation='destination-in';
+      g.drawImage(E,0,0); }
+    o.save(); o.globalAlpha=.65*Math.max(lum,.78); o.drawImage(band,0,0); o.restore();
+  }
   const gloss = mk(cw,chh);
   { const g=gloss.getContext('2d');
-    // パキッとした斜めグロス帯(エッジほぼハード)※トグルでOFF可
-    if(glossBand){
-      const lg=g.createLinearGradient(0,0,cw*.9,chh);
-      lg.addColorStop(.155,'rgba(255,255,255,0)');
-      lg.addColorStop(.165,'rgba(255,255,255,.5)');
-      lg.addColorStop(.24,'rgba(255,255,255,.45)');
-      lg.addColorStop(.25,'rgba(255,255,255,0)');
-      lg.addColorStop(.50,'rgba(255,255,255,0)');
-      lg.addColorStop(.51,'rgba(255,255,255,.18)');
-      lg.addColorStop(.56,'rgba(255,255,255,.16)');
-      lg.addColorStop(.57,'rgba(255,255,255,0)');
-      g.fillStyle=lg; g.fillRect(0,0,cw,chh);
-    }
     // 左上のくっきり反射光(ツヤの玉)
     const sx=cw*.28, sy=chh*.2, sr=Math.max(cw,chh)*.19;
     const rg=g.createRadialGradient(sx,sy,1,sx,sy,sr);
@@ -654,7 +758,7 @@ function puffify(base, edge, d, bl, finish='none', glossBand=true){
     g.fillStyle=rg; g.fillRect(0,0,cw,chh);
     g.globalCompositeOperation='destination-in';
     g.drawImage(E,0,0); }
-  o.save(); o.globalAlpha=.65; o.drawImage(gloss,0,0); o.restore();
+  o.save(); o.globalAlpha=.65*lum; o.drawImage(gloss,0,0); o.restore();
 
   return out;
 }
@@ -677,6 +781,15 @@ function pathHeart(g,x,y,r,rot){
   g.closePath();
   g.restore();
 }
+function lameHue(flow){
+  // 大粒ラメの色味(flow=0〜1 で色が流れる)
+  const c=settings.lameColor;
+  if(c==='pink')   return 320+flow*35+Math.random()*12;
+  if(c==='blue')   return 185+flow*50+Math.random()*15;
+  if(c==='purple') return 255+flow*45+Math.random()*12;
+  if(c==='gold')   return 36+flow*18+Math.random()*8;
+  return (flow*300+Math.random()*70)%360;   // レインボー
+}
 function applyFinish(o, sil, cw, chh, finish){
   // 粒の大きさはシールの大きさに連動(大きいシールほど粒も大きく)
   const k=Math.max(SS, Math.max(cw,chh)/300);
@@ -685,19 +798,37 @@ function applyFinish(o, sil, cw, chh, finish){
   if(hs){
     // でかいレインボーラメ:虹色の大粒グリッター(色の流れつき)
     const rb=mk(cw,chh), g=rb.getContext('2d');
-    const n=Math.max(26, Math.round(cw*chh/(700*k*k)));
+    const n=Math.max(24, Math.round(cw*chh/(580*k*k)));
     for(let i=0;i<n;i++){
       const x=Math.random()*cw, y=Math.random()*chh;
-      // 位置で色が流れる(左上→右下で虹が回る)+ランダムゆらぎ
-      const hue=((x+y)/(cw+chh)*300 + Math.random()*70) % 360;
-      const r=(2.2+Math.random()*3.4)*k;
-      g.globalAlpha=.5+Math.random()*.5;
-      g.fillStyle=`hsl(${hue},100%,${62+Math.random()*18}%)`;
+      // 位置で色が流れる(左上→右下)+ランダムゆらぎ
+      const hue=lameHue((x+y)/(cw+chh));
+      const r=(1.6+Math.random()*3.4)*k;
       // 形:●/★/♡ または MIX
       const rot=Math.random()*Math.PI*2;
       const shape = hs==='mix'
         ? (Math.random()<.5?'circle':(Math.random()<.56?'star':'heart'))
         : hs;
+      // ラメの配合:
+      //  10% 半透明の粒(透け感)
+      //  30% シールのツヤと同じ左上からの光のグラデーション(照り返し)
+      //  60% フラットな箔の面(白く光る面/明るい面/ふつう/陰)
+      const t=Math.random();
+      if(t<.10){
+        g.fillStyle=`hsl(${hue},95%,${55+Math.random()*15}%)`;
+        g.globalAlpha=.28+Math.random()*.2;
+      }else if(t<.40){
+        const rr=r*(shape==='star'?1.9:shape==='heart'?2.4:1);
+        const lm=50+Math.random()*14;
+        const gr=g.createLinearGradient(x-rr*.8,y-rr*.8,x+rr*.8,y+rr*.8);
+        gr.addColorStop(0,`hsl(${hue},95%,${Math.min(92,lm+28)}%)`);
+        gr.addColorStop(1,`hsl(${hue},90%,${lm-8}%)`);
+        g.fillStyle=gr; g.globalAlpha=.9;
+      }
+      else if(t<.50){ g.fillStyle=`hsl(${hue},70%,${88+Math.random()*9}%)`; g.globalAlpha=.95; }
+      else if(t<.66){ g.fillStyle=`hsl(${hue},100%,${68+Math.random()*10}%)`; g.globalAlpha=.9; }
+      else if(t<.88){ g.fillStyle=`hsl(${hue},95%,${52+Math.random()*12}%)`; g.globalAlpha=.85; }
+      else { g.fillStyle=`hsl(${hue},85%,${38+Math.random()*9}%)`; g.globalAlpha=.8; }
       if(shape==='circle'){ g.beginPath(); g.arc(x,y,r,0,7); }
       else if(shape==='star'){ pathStar(g,x,y,r*1.9,rot); }
       else { pathHeart(g,x,y,r*2.4,rot); }
@@ -706,9 +837,9 @@ function applyFinish(o, sil, cw, chh, finish){
     // 大きめの虹キラ(4方向スパーク)
     for(let i=0;i<n/5;i++){
       const x=Math.random()*cw, y=Math.random()*chh, r=(5+Math.random()*7)*k;
-      const hue=((x+y)/(cw+chh)*300 + Math.random()*70) % 360;
+      const hue=lameHue((x+y)/(cw+chh));
       g.globalAlpha=.8+Math.random()*.2;
-      g.fillStyle=`hsl(${hue},100%,75%)`;
+      g.fillStyle=`hsl(${hue},90%,82%)`;
       g.beginPath();
       for(let k=0;k<4;k++){
         const a=k*Math.PI/2;
@@ -724,7 +855,8 @@ function applyFinish(o, sil, cw, chh, finish){
     g.globalAlpha=1;
     g.globalCompositeOperation='destination-in';
     g.drawImage(sil,0,0);
-    o.save(); o.globalCompositeOperation='screen'; o.globalAlpha=.95; o.drawImage(rb,0,0); o.restore();
+    // 発光合成なし:箔の色をそのまま乗せる(本物のラメは発光しない)
+    o.save(); o.globalCompositeOperation='source-over'; o.globalAlpha=.92; o.drawImage(rb,0,0); o.restore();
   }
   if(finish==='glitter' || finish==='both'){
     // ラメ粒子
@@ -801,14 +933,33 @@ function renderPuffy(img, size, edgeF, finish='none', glossBand=true){
   const pad=Math.ceil(edge+bl+6);
   const base=mk(w+pad*2,h+pad*2);
   base.getContext('2d').drawImage(img,pad,pad,w,h);
-  return puffify(base, edge, d, bl, finish, glossBand);
+  // イラストの明るさを測定 → 暗いキャラ(黒髪・黒服など)はツヤ・光を自動で控えめに
+  let lum=1;
+  try{
+    const t=mk(24,24), tx=t.getContext('2d');
+    tx.drawImage(img,0,0,24,24);
+    const px=tx.getImageData(0,0,24,24).data;
+    let B=0,n=0;
+    for(let i=0;i<px.length;i+=4){
+      if(px[i+3]>40){ B+=px[i]*.299+px[i+1]*.587+px[i+2]*.114; n++; }
+    }
+    if(n){ lum=Math.max(.42, Math.min(1, .3+(B/n/255)*1.5)); }
+  }catch(e){}
+  return puffify(base, edge, d, bl, finish, glossBand, lum);
 }
 function renderAsset(img, size){
   const ar=img.width/img.height;
   let w,h;
   if(ar>=1){ w=size; h=size/ar; } else { h=size; w=size*ar; }
-  const c=mk(w+4,h+4);
-  c.getContext('2d').drawImage(img,2,2,w,h);
+  // 2pxほどの小さな落ち影を常時つける(青み影でパキッと)
+  const off=2*SS, blur=2.5*SS, pad=Math.ceil(off+blur+4);
+  const c=mk(w+pad*2,h+pad*2);
+  const x=c.getContext('2d');
+  x.save();
+  x.shadowColor='rgba(90,115,185,.38)';
+  x.shadowBlur=blur; x.shadowOffsetX=off; x.shadowOffsetY=off+SS;
+  x.drawImage(img,pad,pad,w,h);
+  x.restore();
   return c;
 }
 
@@ -830,14 +981,14 @@ function unitSize(s){
 function ensureCache(s){
   // キャッシュはSS倍の高解像度で作り、表示時に1/SSで描く
   const desired=Math.max(20,Math.round(unitSize(s)*s.scale*SS));
-  const eF=settings.edgeF, gb=settings.glossBand;
+  const eF=settings.edgeF, gb=settings.glossBand, lc=settings.lameColor;
   const fin=(s.finish===undefined||s.finish===null)?settings.finish:s.finish;  // 個別キラキラ優先
   const stale = s.kind==='image'
-    ? (Math.abs(desired-s.builtSize)>1 || s.builtEdge!==eF || s.builtFinish!==fin || s.builtGloss!==gb)
+    ? (Math.abs(desired-s.builtSize)>1 || s.builtEdge!==eF || s.builtFinish!==fin || s.builtGloss!==gb || s.builtLame!==lc)
     : (Math.abs(desired-s.builtSize)>1);
   if(!s.cache || (!interacting && stale)){
     s.cache = s.kind==='image' ? renderPuffy(s.img,desired,eF,fin,gb) : renderAsset(s.img,desired);
-    s.builtSize=desired; s.builtEdge=eF; s.builtFinish=fin; s.builtGloss=gb;
+    s.builtSize=desired; s.builtEdge=eF; s.builtFinish=fin; s.builtGloss=gb; s.builtLame=lc;
   }
   return {c:s.cache, f:desired/s.builtSize/SS};
 }
@@ -903,9 +1054,11 @@ function draw(){
 
   if(bgImage){
     // 好きな画像をカバー表示
-    const sc=Math.max(W/bgImage.width, H/bgImage.height);
+    // ユーザー調整:大きさ(100〜220%)と位置(0〜100%)
+    const sc=Math.max(W/bgImage.width, H/bgImage.height)*(+$('bgScale').value/100);
     const dw=bgImage.width*sc, dh=bgImage.height*sc;
-    ctx.drawImage(bgImage,(W-dw)/2,(H-dh)/2,dw,dh);
+    const px=+$('bgPosX').value/100, py=+$('bgPosY').value/100;
+    ctx.drawImage(bgImage,(W-dw)*px,(H-dh)*py,dw,dh);
   } else {
     ctx.fillStyle=t.bg; ctx.fillRect(0,0,W,H);
     if(t.check){
@@ -946,6 +1099,7 @@ function draw(){
     const dw=c.width*f, dh=c.height*f;
     ctx.save();
     ctx.translate(s.x,s.y); ctx.rotate(s.rot);
+    if(s.flip) ctx.scale(-1,1);
     if(settings.shadow){
       const small=s.kind==='asset';
       ctx.shadowColor=`rgba(90,115,185,${small?.28:.34})`;
@@ -977,6 +1131,9 @@ function draw(){
     ctx.strokeStyle='rgba(120,100,120,.3)'; ctx.lineWidth=3;
     roundRect(ctx,W/2-64,57,128,26,13); ctx.stroke();
   }
+
+  // 自動保存(操作が落ち着いてから)
+  if(!interacting) scheduleSave();
 }
 
 function drawTitle(t){
@@ -1353,11 +1510,17 @@ $('bgfile').addEventListener('change', e=>{
   const f=e.target.files[0];
   if(!f || !f.type.startsWith('image/')) return;
   const img=new Image();
-  img.onload=()=>{ bgImage=img; $('useTextColor').checked=true; draw(); };
+  img.onload=()=>{
+    bgImage=img; $('useTextColor').checked=true;
+    $('bgScale').value=100; $('bgPosX').value=50; $('bgPosY').value=50;
+    $('bgAdjust').style.display='';
+    draw();
+  };
   img.src=URL.createObjectURL(f);
   $('bgfile').value='';
 });
-$('bgClear').addEventListener('click', ()=>{ bgImage=null; draw(); });
+$('bgClear').addEventListener('click', ()=>{ bgImage=null; $('bgAdjust').style.display='none'; draw(); });
+['bgScale','bgPosX','bgPosY'].forEach(id=> $(id).addEventListener('input', draw));
 $('textColor').addEventListener('input', draw);
 $('useTextColor').addEventListener('change', draw);
 $('size').addEventListener('input', ()=>{
@@ -1374,6 +1537,7 @@ $('edge').addEventListener('input', ()=>{
 $('edge').addEventListener('change', ()=>{ interacting=false; draw(); });
 $('shadow').addEventListener('change', draw);
 $('finish').addEventListener('change', draw);
+$('lameColor').addEventListener('change', draw);
 $('glossBand').addEventListener('change', draw);
 $('tagHole').addEventListener('change', draw);
 
@@ -1390,50 +1554,34 @@ function updateSelBar(){
   const bar=document.getElementById('selbar');
   const slf=document.getElementById('selFinish');
   const s=sel();
-  const on = s && s.kind==='image';
-  bar.classList.toggle('off', !on);
-  slf.disabled=!on;
-  bar.querySelector('.lbl').textContent = on ? '✨ このシールだけ:' : '✨ シールをタップで選ぶと→';
-  const cur = on ? ((s.finish===undefined||s.finish===null)?'':s.finish) : '';
+  const anySel = !!s;
+  const onImg = s && s.kind==='image';
+  bar.classList.toggle('off', !anySel);
+  slf.disabled=!onImg;
+  $('selFlip').disabled=!anySel;
+  bar.querySelector('.lbl').textContent = anySel ? '✨ このシール:' : '✨ シールをタップ→';
+  const cur = onImg ? ((s.finish===undefined||s.finish===null)?'':s.finish) : '';
   if(slf.value!==cur) slf.value=cur;
 }
+$('selFlip').addEventListener('click', ()=>{
+  const s=sel(); if(!s) return;
+  s.flip=!s.flip; draw();
+});
 document.getElementById('selFinish').addEventListener('change', e=>{
   const s=sel(); if(!s || s.kind!=='image') return;
   if(e.target.value==='') delete s.finish; else s.finish=e.target.value;
   s.cache=null; draw();
 });
 $('deco').addEventListener('change', ()=>{ scatterDecos(); draw(); });
-$('mockup').addEventListener('click', ()=>{
-  try{
-  const keep=selId; selId=-1; draw();
-  const MW=1500, MH=1980, MS=1.6;   // MS=高解像度係数
-  const M=mk(MW*MS,MH*MS), m=M.getContext('2d');
-  m.scale(MS,MS);
-
-  // スタジオ風の背景
-  const bgG=m.createLinearGradient(0,0,MW,MH);
-  bgG.addColorStop(0,'#f8ecf4'); bgG.addColorStop(.55,'#e9eff9'); bgG.addColorStop(1,'#efe9f8');
-  m.fillStyle=bgG; m.fillRect(0,0,MW,MH);
-  const lightG=m.createRadialGradient(MW*.3,MH*.18,50,MW*.3,MH*.18,MW*.9);
-  lightG.addColorStop(0,'rgba(255,255,255,.55)');
-  lightG.addColorStop(1,'rgba(255,255,255,0)');
-  m.fillStyle=lightG; m.fillRect(0,0,MW,MH);
-
-  // 袋+台紙(少し傾けて)
+/* OPP袋(台紙入り)を透明キャンバスに描く — 各モックアップで使い回し */
+function renderBagCanvas(ms){
   const sc=.78, sw=W*sc, sh=H*sc;
-  m.save();
-  m.translate(MW/2, MH/2+30);
-  m.rotate(-.025);
-
   const bagPadX=40, bagTop=150, bagBot=55;
-  const bx=-sw/2-bagPadX, by=-sh/2-bagTop, bw=sw+bagPadX*2, bh=sh+bagTop+bagBot;
-
-  // 袋の落ち影
-  m.save();
-  m.shadowColor='rgba(100,85,140,.4)'; m.shadowBlur=50; m.shadowOffsetY=36;
-  m.fillStyle='rgba(255,255,255,.01)';
-  m.beginPath(); m.roundRect(bx,by,bw,bh,26); m.fill();
-  m.restore();
+  const bw=sw+bagPadX*2, bh=sh+bagTop+bagBot, pad=30;
+  const c=mk((bw+pad*2)*ms,(bh+pad*2)*ms), m=c.getContext('2d');
+  m.scale(ms,ms);
+  m.translate(pad+bw/2, pad+bagTop+sh/2);
+  const bx=-sw/2-bagPadX, by=-sh/2-bagTop;
 
   // 台紙本体
   m.save();
@@ -1483,27 +1631,408 @@ $('mockup').addEventListener('click', ()=>{
   m.font=`26px ${TITLE_FONT}`;
   m.fillText((settings.title||'PuniSeal')+'  ♡  PUFFY STICKER', 0, by+62);
 
-  m.restore(); // rotate解除
-
-  // タグ穴をくり抜き(袋のヘッダー)
-  m.save();
-  m.translate(MW/2, MH/2+30); m.rotate(-.025);
+  // タグ穴をくり抜き
   m.globalCompositeOperation='destination-out';
   m.beginPath(); m.roundRect(-60, by+14, 120, 24, 12); m.fill();
-  m.restore();
+  m.globalCompositeOperation='source-over';
+  return {c, w:bw+pad*2, h:bh+pad*2, holeY:pad+14+12};  // holeY=タグ穴中心(論理px)
+}
 
-  showSaveModal(M.toDataURL('image/png'), 'puni-seal-mockup.png');
-  selId=keep; draw();
+function withSheet(fn){
+  try{
+    const keep=selId; selId=-1; draw();
+    fn();
+    selId=keep; draw();
   }catch(err){
     alert('モックアップ作成でエラーが出ました🙏\n'+err.message);
     console.error(err);
   }
+}
+
+/* 🛍️ パッケージ風(スタジオ撮影) */
+$('mockup').addEventListener('click', ()=> withSheet(()=>{
+  const MW=1500, MH=1980, MS=1.6;
+  const M=mk(MW*MS,MH*MS), m=M.getContext('2d');
+  m.scale(MS,MS);
+  const bgG=m.createLinearGradient(0,0,MW,MH);
+  bgG.addColorStop(0,'#f8ecf4'); bgG.addColorStop(.55,'#e9eff9'); bgG.addColorStop(1,'#efe9f8');
+  m.fillStyle=bgG; m.fillRect(0,0,MW,MH);
+  const lightG=m.createRadialGradient(MW*.3,MH*.18,50,MW*.3,MH*.18,MW*.9);
+  lightG.addColorStop(0,'rgba(255,255,255,.55)');
+  lightG.addColorStop(1,'rgba(255,255,255,0)');
+  m.fillStyle=lightG; m.fillRect(0,0,MW,MH);
+
+  const bag=renderBagCanvas(1.6);
+  const dw=bag.w/1.6, dh=bag.h/1.6;
+  m.save();
+  m.translate(MW/2, MH/2-15); m.rotate(-.025);
+  m.shadowColor='rgba(100,85,140,.4)'; m.shadowBlur=50; m.shadowOffsetY=36;
+  m.drawImage(bag.c, -dw/2, -dh/2, dw, dh);
+  m.restore();
+  showSaveModal(M.toDataURL('image/png'), 'puni-seal-mockup.png');
+}));
+
+/* 🏪 店頭つり下げ風(パンチングボード+フック陳列) */
+$('mockShop').addEventListener('click', ()=> withSheet(()=>{
+  const MW=1900, MH=1500, MS=1.4;
+  const M=mk(MW*MS,MH*MS), m=M.getContext('2d');
+  m.scale(MS,MS);
+  // パンチングボードの壁
+  m.fillStyle='#f6eef5'; m.fillRect(0,0,MW,MH);
+  const lg=m.createLinearGradient(0,0,0,MH);
+  lg.addColorStop(0,'rgba(255,255,255,.5)'); lg.addColorStop(1,'rgba(190,170,205,.18)');
+  m.fillStyle=lg; m.fillRect(0,0,MW,MH);
+  m.fillStyle='rgba(185,165,200,.3)';
+  for(let y=130;y<MH;y+=95) for(let x=85;x<MW;x+=95){
+    m.beginPath(); m.arc(x,y,7,0,7); m.fill();
+  }
+  // 上部の棚レール
+  m.save();
+  m.shadowColor='rgba(120,100,150,.25)'; m.shadowBlur=14; m.shadowOffsetY=6;
+  m.fillStyle='#ffffff'; m.fillRect(0,0,MW,64);
+  m.restore();
+  m.fillStyle='#e8def0'; m.fillRect(0,64,MW,6);
+
+  const bag=renderBagCanvas(1.2);
+  const s=1120/bag.h, dw=bag.w*s, dh=bag.h*s;
+  const topY=200, centers=[MW*.21, MW*.5, MW*.79], rots=[-.028,.016,-.01];
+  centers.forEach((cx,i)=>{
+    // フック(袋のタグ穴から見える)
+    const hy=topY+bag.holeY*s;
+    m.strokeStyle='#b9c0d4'; m.lineWidth=7; m.lineCap='round';
+    m.beginPath(); m.moveTo(cx, hy-46); m.lineTo(cx, hy+4); m.stroke();
+    m.fillStyle='#cfd5e4';
+    m.beginPath(); m.arc(cx, hy+4, 11, 0, 7); m.fill();
+    m.fillStyle='rgba(255,255,255,.7)';
+    m.beginPath(); m.arc(cx-3, hy+1, 4, 0, 7); m.fill();
+    // 袋
+    m.save();
+    m.translate(cx, topY+dh/2); m.rotate(rots[i]);
+    m.shadowColor='rgba(100,85,140,.32)'; m.shadowBlur=30; m.shadowOffsetY=20;
+    m.drawImage(bag.c, -dw/2, -dh/2, dw, dh);
+    m.restore();
+  });
+  // NEW!バッジ
+  m.save();
+  m.translate(MW-170, 190); m.rotate(.12);
+  m.shadowColor='rgba(120,100,150,.3)'; m.shadowBlur=12; m.shadowOffsetY=6;
+  m.fillStyle='#f78bb8';
+  m.beginPath(); m.arc(0,0,78,0,7); m.fill();
+  m.restore();
+  m.save(); m.translate(MW-170,190); m.rotate(.12);
+  m.fillStyle='#fff'; m.textAlign='center'; m.textBaseline='middle';
+  m.font=`34px ${TITLE_FONT}`; m.fillText('NEW', 0, -12);
+  m.font=`26px ${TITLE_FONT}`; m.fillText('♡', 0, 24);
+  m.restore();
+  showSaveModal(M.toDataURL('image/png'), 'puni-seal-shop.png');
+}));
+
+/* 📎 デスク写真風(実写風背景+マステ) */
+$('mockDesk').addEventListener('click', ()=> withSheet(()=>{
+  const MW=1500, MH=1900, MS=1.4;
+  const M=mk(MW*MS,MH*MS), m=M.getContext('2d');
+  m.scale(MS,MS);
+  // 写真の机背景(cover配置)
+  if(deskBg.complete && deskBg.naturalWidth){
+    const ir=deskBg.naturalWidth/deskBg.naturalHeight, cr=MW/MH;
+    let dw2,dh2;
+    if(ir>cr){ dh2=MH; dw2=MH*ir; } else { dw2=MW; dh2=MW/ir; }
+    m.drawImage(deskBg,(MW-dw2)/2,(MH-dh2)/2,dw2,dh2);
+  } else {
+    const wg=m.createLinearGradient(0,0,MW,MH);
+    wg.addColorStop(0,'#f9e9e4'); wg.addColorStop(1,'#f3dcd2');
+    m.fillStyle=wg; m.fillRect(0,0,MW,MH);
+  }
+
+  // 台紙を斜めに置く(2段影:接地のキュッとした影+ふんわり広い影)
+  const sc=.66, sw=W*sc, sh=H*sc;
+  m.save();
+  m.translate(MW/2, MH/2+15); m.rotate(.045);
+  // 広いやわらかい影
+  m.save();
+  m.shadowColor='rgba(150,105,95,.28)'; m.shadowBlur=55; m.shadowOffsetY=38;
+  m.fillStyle='rgba(0,0,0,.01)';
+  m.fillRect(-sw/2,-sh/2,sw,sh);
+  m.restore();
+  // 本体+タイトな影
+  m.save();
+  m.shadowColor='rgba(130,90,80,.4)'; m.shadowBlur=12; m.shadowOffsetX=3; m.shadowOffsetY=9;
+  m.drawImage(canvas, -sw/2, -sh/2, sw, sh);
+  m.restore();
+
+  // マスキングテープ(ちぎれ端+半透明)
+  const tape=(x,y,rot,col)=>{
+    m.save(); m.translate(x,y); m.rotate(rot);
+    m.shadowColor='rgba(130,90,80,.25)'; m.shadowBlur=5; m.shadowOffsetY=3;
+    m.globalAlpha=.66; m.fillStyle=col;
+    const hw=92, hh=26;
+    m.beginPath();
+    m.moveTo(-hw+5,-hh); m.lineTo(hw-4,-hh);
+    for(let i=1;i<=5;i++) m.lineTo(hw-4+((i%2)?7:-2), -hh+i*(hh*2/5));
+    m.lineTo(-hw+5,hh);
+    for(let i=1;i<=5;i++) m.lineTo(-hw+5-((i%2)?7:-2), hh-i*(hh*2/5));
+    m.closePath(); m.fill();
+    m.shadowColor='transparent';
+    m.globalAlpha=.2; m.fillStyle='#fff';
+    m.fillRect(-hw+5,-hh,hw*2-9,9);
+    m.restore();
+  };
+  tape(-sw/2+16, -sh/2+6, -.72, '#f49ec4');
+  tape( sw/2-16,  sh/2-6, -.72, '#8fd4b8');
+  m.restore();
+
+  showSaveModal(M.toDataURL('image/png'), 'puni-seal-desk.png');
+}));
+
+/* 📱 SNS投稿風(スマホのタイムライン画面) */
+$('mockSNS').addEventListener('click', ()=> withSheet(()=>{
+  const MW=1400, MH=2000, MS=1.4;
+  const M=mk(MW*MS,MH*MS), m=M.getContext('2d');
+  m.scale(MS,MS);
+  const title=settings.title||'PuniSeal';
+  const SANS='-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif';
+
+  // スマホ画面
+  m.fillStyle='#ffffff'; m.fillRect(0,0,MW,MH);
+  // ステータスバー
+  m.fillStyle='#262626'; m.textBaseline='middle';
+  m.font=`700 34px ${SANS}`; m.textAlign='left';
+  m.fillText('9:41', 64, 54);
+  m.font=`30px ${SANS}`; m.textAlign='right';
+  m.fillText('📶 🔋', MW-64, 54);
+
+  // 投稿ヘッダー
+  const hy=160;
+  const av=m.createLinearGradient(60,hy-50,160,hy+50);
+  av.addColorStop(0,'#f9ce34'); av.addColorStop(.45,'#ee2a7b'); av.addColorStop(1,'#6228d7');
+  m.fillStyle=av; m.beginPath(); m.arc(112,hy,50,0,7); m.fill();
+  m.fillStyle='#fff'; m.beginPath(); m.arc(112,hy,43,0,7); m.fill();
+  m.font='46px serif'; m.textAlign='center'; m.fillText('🩷', 112, hy+4);
+  m.fillStyle='#262626'; m.textAlign='left';
+  m.font=`700 40px ${SANS}`;
+  m.fillText(title.toLowerCase()+'_official', 190, hy-16);
+  m.fillStyle='#8e8e8e'; m.font=`30px ${SANS}`;
+  m.fillText('オリジナルシールショップ', 190, hy+28);
+  m.fillStyle='#0095f6'; m.font=`700 34px ${SANS}`; m.textAlign='right';
+  m.fillText('フォローする', MW-64, hy);
+
+  // 投稿画像(正方形):パステル背景に袋
+  const iy=250, ih=MW;
+  m.save();
+  m.beginPath(); m.rect(0,iy,MW,ih); m.clip();
+  const pg=m.createLinearGradient(0,iy,MW,iy+ih);
+  pg.addColorStop(0,'#fde7f0'); pg.addColorStop(.55,'#e9eff9'); pg.addColorStop(1,'#efe9f8');
+  m.fillStyle=pg; m.fillRect(0,iy,MW,ih);
+  const lg2=m.createRadialGradient(MW*.3,iy+ih*.2,40,MW*.3,iy+ih*.2,MW*.9);
+  lg2.addColorStop(0,'rgba(255,255,255,.55)'); lg2.addColorStop(1,'rgba(255,255,255,0)');
+  m.fillStyle=lg2; m.fillRect(0,iy,MW,ih);
+  const bag=renderBagCanvas(1.2);
+  const bs=(ih-130)/bag.h, bw2=bag.w*bs, bh2=bag.h*bs;
+  m.translate(MW/2, iy+ih/2+8); m.rotate(-.02);
+  m.shadowColor='rgba(100,85,140,.38)'; m.shadowBlur=36; m.shadowOffsetY=24;
+  m.drawImage(bag.c, -bw2/2, -bh2/2, bw2, bh2);
+  m.restore();
+
+  // アクション行
+  const ay=iy+ih+76;
+  m.textAlign='left'; m.font='56px serif';
+  m.fillText('❤️', 64, ay);
+  m.fillText('💬', 170, ay);
+  m.fillText('📤', 276, ay);
+  m.textAlign='right'; m.fillText('🔖', MW-64, ay);
+
+  // いいね・キャプション
+  m.textAlign='left'; m.fillStyle='#262626';
+  m.font=`700 36px ${SANS}`;
+  m.fillText('いいね!:2,418件', 64, ay+76);
+  m.font=`36px ${SANS}`;
+  m.save();
+  m.font=`700 36px ${SANS}`;
+  const un=title.toLowerCase()+'_official';
+  m.fillText(un, 64, ay+142);
+  m.restore();
+  m.fillText('新作ぷくぷくシールできました ♡', 64+m.measureText(un).width+58, ay+142);
+  m.fillStyle='#00376b';
+  m.fillText('#ぷくぷくシール #'+title+' #ハンドメイド', 64, ay+204);
+  m.fillStyle='#8e8e8e'; m.font=`30px ${SANS}`;
+  m.fillText('1時間前', 64, ay+264);
+
+  showSaveModal(M.toDataURL('image/png'), 'puni-seal-sns.png');
+}));
+
+
+/* ================= 共有(SNS・アプリへ) ================= */
+let shareURL=null, shareName='puni-seal.png', shareFile=null;
+function prepareShare(url, name){
+  shareURL=url; shareName=name; shareFile=null;
+  if(!navigator.share){ $('saveShare').style.display='none'; return; }
+  $('saveShare').style.display='';
+  // タップした瞬間に共有できるよう、先にファイルを用意しておく
+  fetch(url).then(r=>r.blob())
+    .then(b=>{ shareFile=new File([b], name, {type:'image/png'}); })
+    .catch(()=>{});
+}
+$('saveShare').addEventListener('click', async ()=>{
+  try{
+    if(shareFile && navigator.canShare && navigator.canShare({files:[shareFile]})){
+      await navigator.share({files:[shareFile]});
+    }else if(navigator.share){
+      alert('この端末のブラウザは画像の直接共有に未対応みたい🙏\n「💾 画像を保存」してから、SNSアプリで投稿してね');
+    }
+  }catch(e){ /* 共有キャンセル時など:何もしない */ }
 });
+
+/* ================= 自動保存(この端末のブラウザ内) ================= */
+function idbOpen(){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open('puniseal',1);
+    r.onupgradeneeded=()=>r.result.createObjectStore('kv');
+    r.onsuccess=()=>res(r.result);
+    r.onerror=()=>rej(r.error);
+  });
+}
+async function idbSet(k,v){
+  const d=await idbOpen();
+  return new Promise((res,rej)=>{
+    const t=d.transaction('kv','readwrite');
+    t.objectStore('kv').put(v,k);
+    t.oncomplete=()=>{d.close();res();};
+    t.onerror=()=>{d.close();rej(t.error);};
+  });
+}
+async function idbGet(k){
+  const d=await idbOpen();
+  return new Promise((res,rej)=>{
+    const q=d.transaction('kv').objectStore('kv').get(k);
+    q.onsuccess=()=>{d.close();res(q.result);};
+    q.onerror=()=>{d.close();rej(q.error);};
+  });
+}
+async function idbDel(k){
+  const d=await idbOpen();
+  return new Promise((res,rej)=>{
+    const t=d.transaction('kv','readwrite');
+    t.objectStore('kv').delete(k);
+    t.oncomplete=()=>{d.close();res();};
+    t.onerror=()=>{d.close();rej(t.error);};
+  });
+}
+function imgToBlob(img){
+  const w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+  const c=mk(w,h); c.getContext('2d').drawImage(img,0,0);
+  return new Promise(res=>c.toBlob(res,'image/png'));
+}
+const SAVE_INPUT_IDS=['size','edge','shadow','glossBand','tagHole','deco','finish','lameColor','title','catch','textColor','useTextColor','bgScale','bgPosX','bgPosY'];
+let restoring=false, saveTimer=null, savedBlobs={};
+function scheduleSave(){
+  if(restoring) return;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{ saveState().catch(()=>{}); }, 1200);
+}
+async function saveState(){
+  if(restoring) return;
+  const inputs={};
+  SAVE_INPUT_IDS.forEach(id=>{
+    const el=$(id);
+    inputs[id]= el.type==='checkbox' ? el.checked : el.value;
+  });
+  const libOut=[];
+  for(const e of lib){
+    if(!savedBlobs[e.id]) savedBlobs[e.id]=await imgToBlob(e.img);
+    libOut.push({id:e.id, blob:savedBlobs[e.id]});
+  }
+  const bgBlob = bgImage ? await imgToBlob(bgImage) : null;
+  const st={
+    v:1, when:Date.now(), design, inputs,
+    lib:libOut, bg:bgBlob,
+    stickers:stickers.map(s=>({
+      kind:s.kind, deco:s.deco, libId:s.libId,
+      x:s.x, y:s.y, rot:s.rot, scale:s.scale, flip:!!s.flip,
+      finish:(s.finish===undefined)?null:s.finish,
+      auto:!!s.auto, basePx:s.basePx||0
+    })),
+  };
+  await idbSet('state', st);
+}
+function loadImgFromURL(url){
+  return new Promise(res=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=()=>res(null); im.src=url; });
+}
+async function applyState(st){
+  restoring=true;
+  try{
+    if(st.design){
+      design=st.design;
+      document.querySelectorAll('.design').forEach(d=>d.classList.toggle('sel', d.dataset.d===design));
+    }
+    SAVE_INPUT_IDS.forEach(id=>{
+      if(!(id in st.inputs)) return;
+      const el=$(id);
+      if(el.type==='checkbox') el.checked=!!st.inputs[id]; else el.value=st.inputs[id];
+    });
+    lib=[]; savedBlobs={};
+    const byId={};
+    for(const e of (st.lib||[])){
+      const url=URL.createObjectURL(e.blob);
+      const img=await loadImgFromURL(url);
+      if(!img) continue;
+      lib.push({id:e.id, img, url});
+      savedBlobs[e.id]=e.blob;
+      byId[e.id]={img, url};
+      nextId=Math.max(nextId, e.id+1);
+    }
+    renderThumbs();
+    if(st.bg){
+      bgImage=await loadImgFromURL(URL.createObjectURL(st.bg));
+      $('bgAdjust').style.display='';
+    }else{
+      bgImage=null; $('bgAdjust').style.display='none';
+    }
+    // デコ素材の読み込み待ち(最大8秒)
+    const decoIdx=(st.stickers||[]).filter(s=>s.kind==='asset').map(s=>s.deco??0);
+    if(decoIdx.length){
+      for(let i=0;i<32;i++){
+        if(decoIdx.every(j=>decoAssets[j] && decoAssets[j].loaded)) break;
+        await new Promise(r=>setTimeout(r,250));
+      }
+    }
+    stickers=[];
+    for(const o of (st.stickers||[])){
+      let img=null;
+      if(o.kind==='image'){ const e=byId[o.libId]; if(!e) continue; img=e.img; }
+      else { const a=decoAssets[o.deco??-1]; if(!a || !a.loaded) continue; img=a.img; }
+      const s={id:nextId++, kind:o.kind, deco:o.deco, img,
+        thumbURL:o.kind==='image'?byId[o.libId].url:null, libId:o.libId,
+        x:o.x, y:o.y, rot:o.rot, scale:o.scale, flip:!!o.flip,
+        cache:null, builtSize:0, builtEdge:0, basePx:o.basePx||0, auto:!!o.auto};
+      if(o.finish!==null && o.finish!==undefined) s.finish=o.finish;
+      stickers.push(s);
+    }
+    selId=-1; updateTouchAction(); updateSelBar();
+    draw();
+  } finally {
+    restoring=false;
+    scheduleSave();
+  }
+}
+/* 起動時:前回のつづきがあれば聞く */
+idbGet('state').then(st=>{
+  if(!st || !(st.stickers||[]).length) return;
+  const bar=document.createElement('div');
+  bar.id='resumeBar';
+  bar.append('💾 前回のつづきがあります ');
+  const y=document.createElement('button'); y.className='yes'; y.textContent='ひらく';
+  const n=document.createElement('button'); n.className='no'; n.textContent='消す';
+  y.addEventListener('click', ()=>{ bar.remove(); applyState(st); });
+  n.addEventListener('click', ()=>{ bar.remove(); idbDel('state').catch(()=>{}); });
+  bar.append(y,n);
+  document.body.appendChild(bar);
+}).catch(()=>{});
 
 function showSaveModal(url, name){
   $('saveImg').src=url;
   const l=$('saveLink');
   l.href=url; l.download=name;
+  prepareShare(url, name);
   $('saveModal').classList.add('show');
 }
 $('saveClose').addEventListener('click', ()=> $('saveModal').classList.remove('show'));
