@@ -81,7 +81,11 @@
     gap:6px 8px; align-items:center;
     box-shadow:0 4px 14px rgba(190,160,210,.18);
   }
-  .selbar .lbl{flex:1 0 100%; font-size:.74rem; font-weight:700; color:#c88bac;}
+  .selbar .selrow1{flex:1 0 100%; display:flex; align-items:center; gap:8px; min-width:0;}
+  .selbar .lbl{flex:0 0 auto; white-space:nowrap; font-size:.74rem; font-weight:700; color:#c88bac;}
+  .selbar #selReroll{flex:1 1 0; min-width:0; background:#fff; border:2px solid #f2c7da; border-radius:10px;
+    padding:7px 8px; font-size:.8rem; font-weight:700; color:#d37ba6; cursor:pointer;}
+  .selbar.off #selReroll{pointer-events:none;}
   .selbar select{
     flex:1 1 0; min-width:0; font-family:inherit; font-size:.8rem; font-weight:700; color:#9b8ab8;
     border:2px solid #e8dced; border-radius:10px; padding:7px 8px; background:#fdf8fc;
@@ -254,7 +258,7 @@
     </div>
     <div class="ctrl">
       <label>ふち(余白)の太さ <span class="val" id="edgeVal">標準</span></label>
-      <input type="range" id="edge" min="2" max="14" value="7">
+      <input type="range" id="edge" min="2" max="10" step="0.5" value="7">
     </div>
     <div class="ctrl">
       <label>✨ 仕上げ(キラキラ加工・ぜんぶのシール)</label>
@@ -359,9 +363,10 @@
 
   <div class="stage">
     <div class="selbar" id="selbar">
-      <span class="lbl">✨ このシールだけ:</span>
-      <select id="selFinish">
-        <option value="">台紙と同じ</option>
+      <div class="selrow1">
+        <span class="lbl">✨ このシールだけ:</span>
+        <select id="selFinish">
+          <option value="">✨ ラメ選択(台紙と同じ)</option>
         <option value="none">ノーマル</option>
         <option value="glitter">ラメ(こまかい)</option>
         <option value="holo">大粒 ●まる</option>
@@ -369,7 +374,9 @@
         <option value="holo_heart">大粒 ♡ハート</option>
         <option value="holo_mix">大粒 MIX</option>
         <option value="both">両方のせ</option>
-      </select>
+        </select>
+      </div>
+      <button id="selReroll" type="button" title="ラメの配置をふり直す">🎲 ラメふり直し</button>
       <button id="selFlip" type="button" title="左右反転">↔️ 左右反転</button>
     </div>
     <canvas id="sheet" width="1000" height="1800"></canvas>
@@ -910,7 +917,18 @@ function expandSil(sil,r){
   return out;
 }
 // iPad/iPhoneのSafariは ctx.filter(blur) 未対応 → 縮小→拡大スムージングで代用
-const CANVAS_FILTER_OK = 'filter' in CanvasRenderingContext2D.prototype;
+// ※Safariは filter プロパティ自体は「存在する」のに効かない版があるため、
+//   実際にぼかして描いてみて、本当ににじむかをピクセルで確認する
+const CANVAS_FILTER_OK = (()=>{
+  try{
+    const c=mk(24,24), x=c.getContext('2d');
+    x.filter='blur(4px)';
+    x.fillStyle='#000';
+    x.fillRect(10,10,4,4);
+    // 四角から4px離れた場所ににじみが届いていれば、blurは本当に効いている
+    return x.getImageData(4,12,1,1).data[3] > 0;
+  }catch(e){ return false; }
+})();
 function blurImg(src, blur){
   if(blur<=0) return src;
   const w=src.width, h=src.height;
@@ -1394,7 +1412,10 @@ canvas.addEventListener('pointerdown', e=>{
   }
   const hits=hitAll(pt);
   if(hits.length){
-    dragTarget=hits[0];
+    // 選択中のシールが指の下にあるなら、重なりの上下に関係なくそれを優先して掴む
+    // (タップ送りで下のシールを選んだ後、ちゃんとそのシールを動かせるように)
+    const cur=hits.find(q=>q.id===selId);
+    dragTarget=cur||hits[0];
     dragOff={x:pt.x-dragTarget.x, y:pt.y-dragTarget.y};
     pending={ids:hits.map(q=>q.id), prevSel:selId, x:pt.x, y:pt.y};
     mode='maybe';   // タップかドラッグかはまだ分からない
@@ -1412,10 +1433,12 @@ canvas.addEventListener('pointermove', e=>{
   }
   if(mode==='maybe'){
     if(Math.hypot(pt.x-pending.x, pt.y-pending.y)>6){
-      // ドラッグ開始:指の下の一番上のシールを前面に出して動かす
+      // ドラッグ開始:新しく掴んだシールは前面へ。
+      // すでに選択中のシール(タップ送りで選んだ下のシール等)は重なり順を変えない
       mode='move'; interacting=true;
+      const already = dragTarget.id===selId;
       selId=dragTarget.id;
-      bringToFront(dragTarget);
+      if(!already) bringToFront(dragTarget);
     } else return;
   }
   if(mode==='move'){
@@ -1550,7 +1573,7 @@ $('size').addEventListener('input', ()=>{
 $('size').addEventListener('change', ()=>{ interacting=false; draw(); });
 $('edge').addEventListener('input', ()=>{
   const v=+$('edge').value;
-  $('edgeVal').textContent=v<5?'せまめ':v>10?'ひろめ':'標準';
+  $('edgeVal').textContent=v<4.5?'せまめ':v>8.5?'ひろめ':'標準';
   interacting=true; draw();
 });
 $('edge').addEventListener('change', ()=>{ interacting=false; draw(); });
@@ -1578,6 +1601,7 @@ function updateSelBar(){
   bar.classList.toggle('off', !anySel);
   slf.disabled=!onImg;
   $('selFlip').disabled=!anySel;
+  $('selReroll').disabled=!onImg;
   bar.querySelector('.lbl').textContent = anySel ? '✨ このシール:' : '✨ シールをタップ→';
   const cur = onImg ? ((s.finish===undefined||s.finish===null)?'':s.finish) : '';
   if(slf.value!==cur) slf.value=cur;
@@ -1585,6 +1609,10 @@ function updateSelBar(){
 $('selFlip').addEventListener('click', ()=>{
   const s=sel(); if(!s) return;
   s.flip=!s.flip; draw();
+});
+$('selReroll').addEventListener('click', ()=>{
+  const s=sel(); if(!s || s.kind!=='image') return;
+  s.cache=null; draw();   // キャッシュを捨てて再生成=ラメの配置が引き直される
 });
 document.getElementById('selFinish').addEventListener('change', e=>{
   const s=sel(); if(!s || s.kind!=='image') return;
@@ -2078,5 +2106,5 @@ if(document.fonts && document.fonts.ready){
 updateTouchAction();
 draw();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a5194fdc8c02739b',t:'MTc5MzE4MzkxNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a53e951c1fa48b51',t:'MTc5MzU3NDcyNw=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a53e951c1fa48b51',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
