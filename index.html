@@ -394,6 +394,7 @@
       <b>↻</b> 回転 ／ <b>↘</b> 大きさ ／ <b>⧉</b> コピーして増やす ／ <b>×</b> 削除<br>
       重なってるシールは<b>同じ場所をトントンとタップ</b>すると下のシールに切り替わるよ
     </div>
+    <div style="text-align:center; color:#cbbcd2; font-size:.68rem; margin:4px 0 14px;">v37</div>
   </div>
 </div>
 
@@ -916,43 +917,48 @@ function expandSil(sil,r){
   x.fillStyle='#fff'; x.fillRect(0,0,out.width,out.height);
   return out;
 }
-// iPad/iPhoneのSafariは ctx.filter(blur) 未対応 → 縮小→拡大スムージングで代用
-// ※Safariは filter プロパティ自体は「存在する」のに効かない版があるため、
-//   実際にぼかして描いてみて、本当ににじむかをピクセルで確認する
-const CANVAS_FILTER_OK = (()=>{
-  try{
-    const c=mk(24,24), x=c.getContext('2d');
-    x.filter='blur(4px)';
-    x.fillStyle='#000';
-    x.fillRect(10,10,4,4);
-    // 四角から4px離れた場所ににじみが届いていれば、blurは本当に効いている
-    return x.getImageData(4,12,1,1).data[3] > 0;
-  }catch(e){ return false; }
-})();
+// ふちのぼかしは「アルファ値を直接計算するボックスブラー3回がけ(≒ガウスぼかし)」。
+// ブラウザのぼかし機能には一切頼らないので、iPad含む全端末で必ず同じ結果になる。
 function blurImg(src, blur){
-  if(blur<=0) return src;
   const w=src.width, h=src.height;
-  const f=Math.max(1.2, blur);                 // 縮小率 ≒ ぼかし量
-  const sw=Math.max(1,Math.round(w/f)), sh=Math.max(1,Math.round(h/f));
-  const a=mk(sw,sh), ax=a.getContext('2d');
-  ax.imageSmoothingEnabled=true; ax.imageSmoothingQuality='high';
-  ax.drawImage(src,0,0,sw,sh);
-  const b=mk(w,h), bx=b.getContext('2d');
-  bx.imageSmoothingEnabled=true; bx.imageSmoothingQuality='high';
-  bx.drawImage(a,0,0,w,h);
-  return b;
+  const c=mk(w,h), x=c.getContext('2d');
+  x.drawImage(src,0,0);
+  if(blur<=0) return c;
+  const id=x.getImageData(0,0,w,h), d=id.data;
+  const a=new Float32Array(w*h), tmp=new Float32Array(w*h);
+  for(let i=0;i<w*h;i++) a[i]=d[i*4+3];
+  const r=Math.max(1, Math.round(blur));
+  const norm=1/(2*r+1);
+  for(let pass=0;pass<3;pass++){
+    // 横方向
+    for(let y=0;y<h;y++){
+      const row=y*w;
+      let acc=0;
+      for(let i=-r;i<=r;i++) acc+=a[row+Math.min(w-1,Math.max(0,i))];
+      for(let xx=0;xx<w;xx++){
+        tmp[row+xx]=acc*norm;
+        acc+=a[row+Math.min(w-1,xx+r+1)]-a[row+Math.max(0,xx-r)];
+      }
+    }
+    // 縦方向
+    for(let xx=0;xx<w;xx++){
+      let acc=0;
+      for(let i=-r;i<=r;i++) acc+=tmp[Math.min(h-1,Math.max(0,i))*w+xx];
+      for(let y=0;y<h;y++){
+        a[y*w+xx]=acc*norm;
+        acc+=tmp[Math.min(h-1,y+r+1)*w+xx]-tmp[Math.max(0,y-r)*w+xx];
+      }
+    }
+  }
+  for(let i=0;i<w*h;i++){ d[i*4+3]=a[i]; d[i*4]=d[i*4+1]=d[i*4+2]=255; }
+  x.putImageData(id,0,0);
+  return c;
 }
 function rim(sil,dx,dy,blur){
   const c=mk(sil.width,sil.height), x=c.getContext('2d');
   x.drawImage(sil,0,0);
   x.globalCompositeOperation='destination-out';
-  if(CANVAS_FILTER_OK){
-    x.filter=`blur(${blur}px)`;
-    x.drawImage(sil,dx,dy);
-    x.filter='none';
-  }else{
-    x.drawImage(blurImg(sil,blur),dx,dy);
-  }
+  x.drawImage(blurImg(sil,blur),dx,dy);
   return c;
 }
 function tintSil(sil,color){
@@ -2106,5 +2112,5 @@ if(document.fonts && document.fonts.ready){
 updateTouchAction();
 draw();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a53e951c1fa48b51',t:'MTc5MzU3NDcyNw=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a53e951c1fa48b51',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a53ec487bea2d1ca',t:'MTc5MzU3NjY2OQ=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a53ec487bea2d1ca',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
