@@ -156,7 +156,13 @@
   .btn-dl{background:linear-gradient(135deg,#f9a8c9,#f28bb5);}
   .btn-mock{background:linear-gradient(135deg,#b8a7ea,#9b7fe0);}
   .mockrow{display:flex; gap:6px;}
-  .mockrow button{flex:1 1 0; min-width:0; font-size:.72rem; padding:8px 1px; line-height:1.5;}
+  .mockrow button{flex:1 1 0; min-width:0; font-size:.72rem; padding:4px 1px; line-height:1.5;
+    height:56px; white-space:nowrap; overflow:hidden;}
+  .btn-mock6{background:linear-gradient(135deg,#e8a4c4,#d678a8);}
+  .btn-mock7{background:linear-gradient(135deg,#8fb8ec,#6a93d8);}
+  .btn-mock8{background:linear-gradient(135deg,#9fd3c0,#6cb9a0);}
+  .btn-mock9{background:linear-gradient(135deg,#c19ae8,#a479d4);}
+  .btn-mock10{background:linear-gradient(135deg,#f0c36b,#e0a23f);}
   .dlrow{width:90%; max-width:500px; display:flex; flex-direction:column; gap:10px; margin:0 auto;}
   .btn-mock2{background:linear-gradient(135deg,#f0b56e,#e89b4f); font-size:.85rem; padding:11px 2px;}
   .btn-mock3{background:linear-gradient(135deg,#6fc9b0,#4fb193); font-size:.85rem; padding:11px 2px;}
@@ -385,8 +391,14 @@
       <div class="mockrow">
         <button class="btn-mock" id="mockup">🛍️<br>パッケージ</button>
         <button class="btn-mock2" id="mockShop">🏪<br>店頭</button>
-        <button class="btn-mock3" id="mockDesk">📎<br>デスク</button>
         <button class="btn-mock4" id="mockSNS">📱<br>SNS</button>
+        <button class="btn-mock10" id="mockBA">🔄<br>変身</button>
+      </div>
+      <div class="mockrow">
+        <button class="btn-mock6" id="mockTecho">📖<br>手帳</button>
+        <button class="btn-mock7" id="mockCase">📱<br>ケース</button>
+        <button class="btn-mock9" id="mockPack2">💠<br>パッケ②</button>
+        <button class="btn-mock8" id="mockPack3">🎁<br>パッケ③</button>
       </div>
     </div>
     <div class="hint">
@@ -394,7 +406,7 @@
       <b>↻</b> 回転 ／ <b>↘</b> 大きさ ／ <b>⧉</b> コピーして増やす ／ <b>×</b> 削除<br>
       重なってるシールは<b>同じ場所をトントンとタップ</b>すると下のシールに切り替わるよ
     </div>
-    <div style="text-align:center; color:#cbbcd2; font-size:.68rem; margin:4px 0 14px;">v38</div>
+    <div style="text-align:center; color:#cbbcd2; font-size:.68rem; margin:4px 0 14px;">v54</div>
   </div>
 </div>
 
@@ -445,10 +457,10 @@ for(let i=0;i<DECO_COUNT;i++){
   img.src = `assets/deco/deco_${String(i).padStart(2,'0')}.png`;
   decoAssets.push(entry);
 }
-const deskBg = new Image();
-deskBg.src = 'assets/desk_bg.jpg';
-
-
+const caseBg = new Image();
+caseBg.src = 'assets/case_bg.jpg';
+const techoBg = new Image();
+techoBg.src = 'assets/techo_bg.jpg';
 // パレットUI
 {
   const pal = $('palette');
@@ -1691,6 +1703,198 @@ function renderBagCanvas(ms){
   return {c, w:bw+pad*2, h:bh+pad*2, holeY:pad+14+12};  // holeY=タグ穴中心(論理px)
 }
 
+/* パッケージ②:ブリスターパック(台紙カード+薄い透明プラ枠) */
+function renderBagCanvas2(ms){
+  const sc=.78, sw=W*sc, sh=H*sc;
+  const cardPadX=60, cardTop=230, cardBot=60, pad=30;
+  const cw2=sw+cardPadX*2, ch2=sh+cardTop+cardBot;
+  const c=mk((cw2+pad*2)*ms,(ch2+pad*2)*ms), m=c.getContext('2d');
+  m.scale(ms,ms);
+  m.translate(pad+cw2/2, pad+cardTop+sh/2);
+  const cx=-cw2/2, cy=-sh/2-cardTop;
+  // 台紙カード(全体を同色グラデ:ミント→スカイ)
+  m.save();
+  m.shadowColor='rgba(90,95,110,.3)'; m.shadowBlur=22; m.shadowOffsetY=12;
+  const cg=m.createLinearGradient(cx,cy,cx+cw2*.4,cy+ch2);
+  cg.addColorStop(0,'#8fd4c2'); cg.addColorStop(1,'#7fb8e0');
+  m.fillStyle=cg;
+  m.beginPath(); m.roundRect(cx,cy,cw2,ch2,28); m.fill();
+  m.restore();
+  // カードのフチの厚み(上辺ハイライト+下辺の影)
+  m.save();
+  m.beginPath(); m.roundRect(cx,cy,cw2,ch2,28); m.clip();
+  m.strokeStyle='rgba(255,255,255,.55)'; m.lineWidth=3;
+  m.beginPath(); m.moveTo(cx+24,cy+2); m.lineTo(cx+cw2-24,cy+2); m.stroke();
+  m.strokeStyle='rgba(60,85,110,.30)'; m.lineWidth=4;
+  m.beginPath(); m.moveTo(cx+20,cy+ch2-2); m.lineTo(cx+cw2-20,cy+ch2-2); m.stroke();
+  m.restore();
+  // カード上部:カラー帯(ミント→スカイ)+白ドット+タイトル
+  m.fillStyle='rgba(255,255,255,.35)';
+  for(let xx=0;xx<16;xx++){
+    m.beginPath(); m.arc(cx+28+xx*(cw2-56)/15, cy+152+(xx%2)*-130, 6, 0, 7); m.fill();
+  }
+  m.fillStyle='#ffffff'; m.textAlign='center'; m.textBaseline='middle';
+  m.font=`34px ${TITLE_FONT}`;
+  m.fillText((settings.title||'PuniSeal')+' ♡', 0, cy+78);
+  m.font=`17px ${TITLE_FONT}`; m.fillStyle='rgba(255,255,255,.85)';
+  m.fillText('P U F F Y   S T I C K E R', 0, cy+120);
+
+  // シート
+  m.drawImage(canvas, -sw/2, -sh/2, sw, sh);
+  // ===== 透明ブリスター(薄いプラ枠) =====
+  const bbx=-sw/2-22, bby=-sh/2-22, bbw=sw+44, bbh=sh+44, R1=34, inset=18, R2=R1-inset+6;
+  // ドームが台紙に落とす影(浮いてる感)
+  m.save();
+  m.shadowColor='rgba(60,80,105,.32)'; m.shadowBlur=20; m.shadowOffsetX=5; m.shadowOffsetY=13;
+  m.fillStyle='rgba(0,0,0,.01)';
+  m.beginPath(); m.roundRect(bbx,bby,bbw,bbh,R1); m.fill();
+  m.restore();
+  // 枠(フランジ→ドーム壁のリング)
+  m.beginPath();
+  m.roundRect(bbx,bby,bbw,bbh,R1);
+  m.roundRect(bbx+inset,bby+inset,bbw-inset*2,bbh-inset*2,R2);
+  const rg=m.createLinearGradient(bbx,bby,bbx+bbw,bby+bbh);
+  rg.addColorStop(0,'rgba(240,246,252,.62)');
+  rg.addColorStop(.5,'rgba(205,214,228,.48)');
+  rg.addColorStop(1,'rgba(150,164,188,.58)');
+  m.fillStyle=rg;
+  m.fill('evenodd');
+  // ドーム面(ほぼ透明)
+  m.fillStyle='rgba(255,255,255,.08)';
+  m.beginPath(); m.roundRect(bbx+inset,bby+inset,bbw-inset*2,bbh-inset*2,R2); m.fill();
+  // 輪郭線
+  m.strokeStyle='rgba(255,255,255,.95)'; m.lineWidth=3;
+  m.beginPath(); m.roundRect(bbx,bby,bbw,bbh,R1); m.stroke();
+  m.strokeStyle='rgba(255,255,255,.8)'; m.lineWidth=2;
+  m.beginPath(); m.roundRect(bbx+inset,bby+inset,bbw-inset*2,bbh-inset*2,R2); m.stroke();
+  m.strokeStyle='rgba(110,122,145,.22)'; m.lineWidth=1.5;
+  m.beginPath(); m.roundRect(bbx+inset-4,bby+inset-4,bbw-inset*2+8,bbh-inset*2+8,R2+3); m.stroke();
+  m.strokeStyle='rgba(75,95,120,.28)'; m.lineWidth=3;
+  m.beginPath(); m.roundRect(bbx+inset+2,bby+inset+2,bbw-inset*2-4,bbh-inset*2-4,R2-2); m.stroke();
+  // ドームのツヤ(斜めの光+左上のハイライト)
+  m.save();
+  m.beginPath(); m.roundRect(bbx+inset,bby+inset,bbw-inset*2,bbh-inset*2,R2); m.clip();
+  const gl=m.createLinearGradient(bbx,bby,bbx+bbw,bby+bbh);
+  gl.addColorStop(.10,'rgba(255,255,255,0)');
+  gl.addColorStop(.13,'rgba(255,255,255,.28)');
+  gl.addColorStop(.20,'rgba(255,255,255,.25)');
+  gl.addColorStop(.23,'rgba(255,255,255,0)');
+  gl.addColorStop(.62,'rgba(255,255,255,0)');
+  gl.addColorStop(.65,'rgba(255,255,255,.14)');
+  gl.addColorStop(.70,'rgba(255,255,255,.13)');
+  gl.addColorStop(.73,'rgba(255,255,255,0)');
+  m.fillStyle=gl; m.fillRect(bbx,bby,bbw,bbh);
+  const cs=m.createRadialGradient(bbx+inset+60,bby+inset+60,10,bbx+inset+60,bby+inset+60,240);
+  cs.addColorStop(0,'rgba(255,255,255,.30)');
+  cs.addColorStop(1,'rgba(255,255,255,0)');
+  m.fillStyle=cs; m.fillRect(bbx,bby,bbw,bbh);
+  m.restore();
+  // 吊り下げ穴(カード上部中央)
+  m.save();
+  m.globalCompositeOperation='destination-out';
+  m.beginPath(); m.arc(0, cy+40, 17, 0, 7); m.fill();
+  m.restore();
+  m.strokeStyle='rgba(255,255,255,.85)'; m.lineWidth=3;
+  m.beginPath(); m.arc(0, cy+40, 17, 0, 7); m.stroke();
+  return {c, w:cw2+pad*2, h:ch2+pad*2};
+}
+
+/* パッケージ③:チャック付きクリアバッグ(ラベル+Thank you丸シール) */
+function renderBagCanvas3(ms){
+  const sc=.78, sw=W*sc, sh=H*sc;
+  const zipTop=120, bot=55, padX=40;
+  const bw=sw+padX*2, bh=sh+zipTop+bot, pad=40;
+  const c=mk((bw+pad*2)*ms,(bh+pad*2)*ms), m=c.getContext('2d');
+  m.scale(ms,ms);
+  m.translate(pad+bw/2, pad+zipTop+sh/2);
+  const bx=-sw/2-padX, by=-sh/2-zipTop;
+  // 台紙
+  m.save();
+  m.shadowColor='rgba(100,85,140,.3)'; m.shadowBlur=24; m.shadowOffsetY=14;
+  m.drawImage(canvas, -sw/2, -sh/2, sw, sh);
+  m.restore();
+  // 袋フィルム
+  m.fillStyle='rgba(255,255,255,.10)';
+  m.beginPath(); m.roundRect(bx,by,bw,bh,22); m.fill();
+  m.strokeStyle='rgba(255,255,255,.75)'; m.lineWidth=3;
+  m.beginPath(); m.roundRect(bx,by,bw,bh,22); m.stroke();
+  m.save();
+  m.beginPath(); m.roundRect(bx,by,bw,bh,22); m.clip();
+  const fl=m.createLinearGradient(bx,by,bx+bw,by+bh);
+  fl.addColorStop(.12,'rgba(255,255,255,0)');
+  fl.addColorStop(.14,'rgba(255,255,255,.3)');
+  fl.addColorStop(.22,'rgba(255,255,255,.28)');
+  fl.addColorStop(.24,'rgba(255,255,255,0)');
+  fl.addColorStop(.58,'rgba(255,255,255,0)');
+  fl.addColorStop(.60,'rgba(255,255,255,.16)');
+  fl.addColorStop(.66,'rgba(255,255,255,.15)');
+  fl.addColorStop(.68,'rgba(255,255,255,0)');
+  m.fillStyle=fl; m.fillRect(bx,by,bw,bh);
+  m.strokeStyle='rgba(255,255,255,.35)'; m.lineWidth=2;
+  for(let i=0;i<4;i++){
+    const yy=by+bh-20-i*9;
+    m.beginPath(); m.moveTo(bx+30+i*40, yy); m.lineTo(bx+bw-60-i*30, yy-5); m.stroke();
+  }
+  m.restore();
+  // チャック(ジッパー)
+  m.fillStyle='rgba(255,255,255,.35)';
+  m.fillRect(bx+6, by+22, bw-12, 40);
+  m.strokeStyle='rgba(255,255,255,.95)'; m.lineWidth=3;
+  m.beginPath(); m.moveTo(bx+6,by+34); m.lineTo(bx+bw-6,by+34); m.stroke();
+  m.strokeStyle='rgba(155,165,180,.45)'; m.lineWidth=2;
+  m.beginPath(); m.moveTo(bx+6,by+50); m.lineTo(bx+bw-6,by+50); m.stroke();
+  m.strokeStyle='rgba(255,255,255,.5)'; m.lineWidth=2;
+  for(let x=bx+14;x<bx+bw-10;x+=16){
+    m.beginPath(); m.moveTo(x,by+24); m.lineTo(x,by+60); m.stroke();
+  }
+  // スライダー
+  m.save();
+  m.shadowColor='rgba(100,85,140,.3)'; m.shadowBlur=6; m.shadowOffsetY=3;
+  m.fillStyle='#e8ebef';
+  m.beginPath(); m.roundRect(bx+46, by+26, 52, 32, 9); m.fill();
+  m.restore();
+  m.strokeStyle='rgba(155,165,180,.6)'; m.lineWidth=2;
+  m.beginPath(); m.roundRect(bx+46, by+26, 52, 32, 9); m.stroke();
+  m.fillStyle='rgba(155,165,180,.5)';
+  m.beginPath(); m.roundRect(bx+62, by+52, 20, 14, 4); m.fill();
+  // ラベルシール(左上)
+  m.save();
+  m.translate(bx+150, by+118); m.rotate(-.04);
+  m.shadowColor='rgba(100,85,140,.25)'; m.shadowBlur=8; m.shadowOffsetY=4;
+  m.fillStyle='rgba(255,255,255,.95)';
+  m.beginPath(); m.roundRect(-120,-30,240,60,16); m.fill();
+  m.restore();
+  m.save();
+  m.translate(bx+150, by+118); m.rotate(-.04);
+  m.fillStyle='#67748c'; m.textAlign='center'; m.textBaseline='middle';
+  m.font=`26px ${TITLE_FONT}`;
+  m.fillText((settings.title||'PuniSeal')+' ♡', 0, 1);
+  m.restore();
+  // Thank you 丸シール(右下・ギザ縁)
+  const sx=bx+bw-120, sy=by+bh-140, sr=88;
+  m.save();
+  m.translate(sx,sy); m.rotate(.10);
+  m.shadowColor='rgba(100,85,140,.3)'; m.shadowBlur=10; m.shadowOffsetY=5;
+  m.fillStyle='#ede3d0';
+  m.beginPath();
+  for(let i=0;i<=40;i++){
+    const a=i/40*Math.PI*2, rr=sr+(i%2?0:6);
+    i?m.lineTo(Math.cos(a)*rr,Math.sin(a)*rr):m.moveTo(rr,0);
+  }
+  m.closePath(); m.fill();
+  m.restore();
+  m.save();
+  m.translate(sx,sy); m.rotate(.10);
+  m.strokeStyle='rgba(255,255,255,.9)'; m.lineWidth=3; m.setLineDash([7,6]);
+  m.beginPath(); m.arc(0,0,sr-14,0,7); m.stroke(); m.setLineDash([]);
+  m.fillStyle='#8b7355'; m.textAlign='center'; m.textBaseline='middle';
+  m.font=`30px ${TITLE_FONT}`;
+  m.fillText('Thank', 0, -16);
+  m.fillText('you ♡', 0, 20);
+  m.restore();
+  return {c, w:bw+pad*2, h:bh+pad*2};
+}
+
 function withSheet(fn){
   try{
     const keep=selId; selId=-1; draw();
@@ -1750,20 +1954,28 @@ $('mockShop').addEventListener('click', ()=> withSheet(()=>{
   const s=1120/bag.h, dw=bag.w*s, dh=bag.h*s;
   const topY=200, centers=[MW*.21, MW*.5, MW*.79], rots=[-.028,.016,-.01];
   centers.forEach((cx,i)=>{
-    // フック(袋のタグ穴から見える)
-    const hy=topY+bag.holeY*s;
+    const rot=rots[i];
+    // 回転後の「タグ穴」の実際の位置を計算してフックを合わせる
+    const hx=cx + (dh/2-bag.holeY*s)*Math.sin(rot);
+    const hy=(topY+dh/2) + (bag.holeY*s-dh/2)*Math.cos(rot);
+    // 1) フックの軸(短めの突起。袋の後ろ側)+ボードへの取り付け部
+    m.fillStyle='#aab2c8';
+    m.beginPath(); m.arc(hx, hy-64, 9, 0, 7); m.fill();
     m.strokeStyle='#b9c0d4'; m.lineWidth=7; m.lineCap='round';
-    m.beginPath(); m.moveTo(cx, hy-46); m.lineTo(cx, hy+4); m.stroke();
-    m.fillStyle='#cfd5e4';
-    m.beginPath(); m.arc(cx, hy+4, 11, 0, 7); m.fill();
-    m.fillStyle='rgba(255,255,255,.7)';
-    m.beginPath(); m.arc(cx-3, hy+1, 4, 0, 7); m.fill();
-    // 袋
+    m.beginPath(); m.moveTo(hx, hy-64); m.lineTo(hx, hy+6); m.stroke();
+    // 2) 袋
     m.save();
-    m.translate(cx, topY+dh/2); m.rotate(rots[i]);
+    m.translate(cx, topY+dh/2); m.rotate(rot);
     m.shadowColor='rgba(100,85,140,.32)'; m.shadowBlur=30; m.shadowOffsetY=20;
     m.drawImage(bag.c, -dw/2, -dh/2, dw, dh);
     m.restore();
+    // 3) フックの先端(穴を通って手前に見える部分)
+    m.strokeStyle='#c6cdde'; m.lineWidth=7; m.lineCap='round';
+    m.beginPath(); m.moveTo(hx, hy-9); m.lineTo(hx, hy+4); m.stroke();
+    m.fillStyle='#cfd5e4';
+    m.beginPath(); m.arc(hx, hy+7, 10, 0, 7); m.fill();
+    m.fillStyle='rgba(255,255,255,.7)';
+    m.beginPath(); m.arc(hx-3, hy+4, 3.5, 0, 7); m.fill();
   });
   // NEW!バッジ
   m.save();
@@ -1778,63 +1990,6 @@ $('mockShop').addEventListener('click', ()=> withSheet(()=>{
   m.font=`26px ${TITLE_FONT}`; m.fillText('♡', 0, 24);
   m.restore();
   showSaveModal(M.toDataURL('image/png'), 'puni-seal-shop.png');
-}));
-
-/* 📎 デスク写真風(実写風背景+マステ) */
-$('mockDesk').addEventListener('click', ()=> withSheet(()=>{
-  const MW=1500, MH=1900, MS=1.4;
-  const M=mk(MW*MS,MH*MS), m=M.getContext('2d');
-  m.scale(MS,MS);
-  // 写真の机背景(cover配置)
-  if(deskBg.complete && deskBg.naturalWidth){
-    const ir=deskBg.naturalWidth/deskBg.naturalHeight, cr=MW/MH;
-    let dw2,dh2;
-    if(ir>cr){ dh2=MH; dw2=MH*ir; } else { dw2=MW; dh2=MW/ir; }
-    m.drawImage(deskBg,(MW-dw2)/2,(MH-dh2)/2,dw2,dh2);
-  } else {
-    const wg=m.createLinearGradient(0,0,MW,MH);
-    wg.addColorStop(0,'#f9e9e4'); wg.addColorStop(1,'#f3dcd2');
-    m.fillStyle=wg; m.fillRect(0,0,MW,MH);
-  }
-
-  // 台紙を斜めに置く(2段影:接地のキュッとした影+ふんわり広い影)
-  const sc=.66, sw=W*sc, sh=H*sc;
-  m.save();
-  m.translate(MW/2, MH/2+15); m.rotate(.045);
-  // 広いやわらかい影
-  m.save();
-  m.shadowColor='rgba(150,105,95,.28)'; m.shadowBlur=55; m.shadowOffsetY=38;
-  m.fillStyle='rgba(0,0,0,.01)';
-  m.fillRect(-sw/2,-sh/2,sw,sh);
-  m.restore();
-  // 本体+タイトな影
-  m.save();
-  m.shadowColor='rgba(130,90,80,.4)'; m.shadowBlur=12; m.shadowOffsetX=3; m.shadowOffsetY=9;
-  m.drawImage(canvas, -sw/2, -sh/2, sw, sh);
-  m.restore();
-
-  // マスキングテープ(ちぎれ端+半透明)
-  const tape=(x,y,rot,col)=>{
-    m.save(); m.translate(x,y); m.rotate(rot);
-    m.shadowColor='rgba(130,90,80,.25)'; m.shadowBlur=5; m.shadowOffsetY=3;
-    m.globalAlpha=.66; m.fillStyle=col;
-    const hw=92, hh=26;
-    m.beginPath();
-    m.moveTo(-hw+5,-hh); m.lineTo(hw-4,-hh);
-    for(let i=1;i<=5;i++) m.lineTo(hw-4+((i%2)?7:-2), -hh+i*(hh*2/5));
-    m.lineTo(-hw+5,hh);
-    for(let i=1;i<=5;i++) m.lineTo(-hw+5-((i%2)?7:-2), hh-i*(hh*2/5));
-    m.closePath(); m.fill();
-    m.shadowColor='transparent';
-    m.globalAlpha=.2; m.fillStyle='#fff';
-    m.fillRect(-hw+5,-hh,hw*2-9,9);
-    m.restore();
-  };
-  tape(-sw/2+16, -sh/2+6, -.72, '#f49ec4');
-  tape( sw/2-16,  sh/2-6, -.72, '#8fd4b8');
-  m.restore();
-
-  showSaveModal(M.toDataURL('image/png'), 'puni-seal-desk.png');
 }));
 
 /* 📱 SNS投稿風(スマホのタイムライン画面) */
@@ -2080,6 +2235,266 @@ idbGet('state').then(st=>{
   bar.append(y,n);
   document.body.appendChild(bar);
 }).catch(()=>{});
+
+/* モックアップ用:シールを重ならないように自然に配置(領域内に必ず収める) */
+function stickScatter(m, picks, rx, ry, rw, rh, f, spots, shadow, obs){
+  // 1) 各シールのサイズ・角度・初期位置を決める
+  const items = picks.map((st,i)=>{
+    const t=spots[i%spots.length];
+    const {c}=ensureCache(st);
+    let dw3=c.width/SS*f, dh3=c.height/SS*f;
+    const rot=t[2]+(Math.random()-.5)*.10;
+    const co=Math.abs(Math.cos(rot)), si=Math.abs(Math.sin(rot));
+    let bw=dw3*co+dh3*si, bh=dw3*si+dh3*co;
+    const cap=Math.min(1, rw*.95/bw, rh*.95/bh);
+    dw3*=cap; dh3*=cap; bw*=cap; bh*=cap;
+    return {st, c, dw3, dh3, rot, bw, bh,
+      r: Math.max(bw,bh)/2*.78,
+      cx: rx+rw*t[0]+(Math.random()-.5)*rw*.04,
+      cy: ry+rh*t[1]+(Math.random()-.5)*rh*.04};
+  });
+  // 2) 重なりを反発で解消(大が小を下敷きにしない)
+  for(let it=0; it<80; it++){
+    let moved=false;
+    for(let a=0;a<items.length;a++) for(let b=a+1;b<items.length;b++){
+      const A=items[a],B=items[b];
+      let dx=B.cx-A.cx, dy=B.cy-A.cy;
+      let d=Math.hypot(dx,dy)||.001;
+      const minD=(A.r+B.r)*.95;
+      if(d<minD){
+        const push=(minD-d)/2;
+        dx/=d; dy/=d;
+        A.cx-=dx*push; A.cy-=dy*push;
+        B.cx+=dx*push; B.cy+=dy*push;
+        moved=true;
+      }
+    }
+    items.forEach(q=>{
+      (obs||[]).forEach(o=>{
+        let dx=q.cx-o.x, dy=q.cy-o.y;
+        const d=Math.hypot(dx,dy)||.001;
+        const minD=o.r+q.r*.9;
+        if(d<minD){ q.cx+=dx/d*(minD-d); q.cy+=dy/d*(minD-d); moved=true; }
+      });
+      q.cx=Math.min(rx+rw-q.bw/2, Math.max(rx+q.bw/2, q.cx));
+      q.cy=Math.min(ry+rh-q.bh/2, Math.max(ry+q.bh/2, q.cy));
+    });
+    if(!moved) break;
+  }
+  // 3) 大きい順に描く(万一触れても小さい子が上に乗る)
+  items.sort((a,b)=>b.dw3*b.dh3 - a.dw3*a.dh3).forEach(q=>{
+    m.save();
+    m.translate(q.cx,q.cy); m.rotate(q.rot);
+    if(q.st.flip) m.scale(-1,1);
+    if(shadow){ m.shadowColor=shadow; m.shadowBlur=7; m.shadowOffsetY=4; }
+    m.drawImage(q.c,-q.dw3/2,-q.dh3/2,q.dw3,q.dh3);
+    m.restore();
+  });
+}
+
+/* 📖 手帳デコ風(実写背景:開いた手帳にシールをペタペタ) */
+$('mockTecho').addEventListener('click', ()=> withSheet(()=>{
+  const MW=1500, MH=1020, MS=1.4;
+  const M=mk(MW*MS,MH*MS), m=M.getContext('2d');
+  m.scale(MS,MS);
+  if(techoBg.complete && techoBg.naturalWidth){
+    const ir=techoBg.naturalWidth/techoBg.naturalHeight, cr=MW/MH;
+    let dw2,dh2;
+    if(ir>cr){ dh2=MH; dw2=MH*ir; } else { dw2=MW; dh2=MW/ir; }
+    m.drawImage(techoBg,(MW-dw2)/2,(MH-dh2)/2,dw2,dh2);
+  } else {
+    const wg=m.createLinearGradient(0,0,MW,MH);
+    wg.addColorStop(0,'#efe8dc'); wg.addColorStop(1,'#e4d9c8');
+    m.fillStyle=wg; m.fillRect(0,0,MW,MH);
+  }
+  // 左ページにシート本体(作業中っぽく少し斜め)
+  const sh=MH*.62, sw=sh*W/H;
+  const sc2=sw/W;  // 台紙の表示縮尺 → 剥がしたシールも同じ縮尺
+  m.save();
+  m.translate(MW*.3625, MH*.515); m.rotate(-.05);
+  m.save();
+  m.shadowColor='rgba(110,95,75,.3)'; m.shadowBlur=36; m.shadowOffsetY=22;
+  m.fillStyle='rgba(0,0,0,.01)'; m.fillRect(-sw/2,-sh/2,sw,sh);
+  m.restore();
+  m.shadowColor='rgba(100,85,65,.38)'; m.shadowBlur=10; m.shadowOffsetX=2; m.shadowOffsetY=7;
+  m.drawImage(canvas, -sw/2, -sh/2, sw, sh);
+  m.restore();
+  // 右ページ:かたまり感のある貼り方(上に2枚寄せ、下は流れるように)
+  const picks=[...stickers.filter(q=>q.kind==='image'), ...stickers.filter(q=>q.kind==='asset')].slice(0,5);
+  const spots=[[.30,.20,-.12],[.52,.27,.10],[.40,.46,-.06],[.70,.62,.09],[.54,.78,-.13]];
+  stickScatter(m, picks, MW*.52, MH*.24, MW*.24, MH*.52, sc2, spots, 'rgba(105,90,70,.3)');
+  showSaveModal(M.toDataURL('image/png'), 'puni-seal-techo.png');
+}));
+
+/* 📱 スマホケース挟み込み風(実写背景:クリアケースの下にシール) */
+$('mockCase').addEventListener('click', ()=> withSheet(()=>{
+  const MW=1200, MH=1790, MS=1.2;
+  const M=mk(MW*MS,MH*MS), m=M.getContext('2d');
+  m.scale(MS,MS);
+  if(caseBg.complete && caseBg.naturalWidth){
+    const ir=caseBg.naturalWidth/caseBg.naturalHeight, cr=MW/MH;
+    let dw2,dh2;
+    if(ir>cr){ dh2=MH; dw2=MH*ir; } else { dw2=MW; dh2=MW/ir; }
+    m.drawImage(caseBg,(MW-dw2)/2,(MH-dh2)/2,dw2,dh2);
+  } else {
+    const wg=m.createLinearGradient(0,0,MW,MH);
+    wg.addColorStop(0,'#eef0f2'); wg.addColorStop(1,'#e3e8ee');
+    m.fillStyle=wg; m.fillRect(0,0,MW,MH);
+  }
+  const px=MW*.30, py=MH*.24, pw2=MW*.40, ph2=MH*.52;
+  m.save();
+  m.beginPath(); m.roundRect(px,py,pw2,ph2,56); m.clip();
+  const picks=[...stickers.filter(q=>q.kind==='image'), ...stickers.filter(q=>q.kind==='asset')].slice(0,6);
+  const maxL=Math.max(1,...picks.map(q=>{const {c}=ensureCache(q); return Math.max(c.width,c.height)/SS;}));
+  const fC=Math.min(1, (pw2*.42)/maxL);
+  // カメラ(左上)を避けつつ、右上と中央下にかたまり
+  const spots=[[.74,.12,-.08],[.58,.26,.10],[.26,.46,.12],[.44,.56,-.09],[.70,.62,.07],[.40,.84,-.11]];
+  stickScatter(m, picks, px+18, py+18, pw2-36, ph2-36, fC, spots, null, [{x:MW*.42, y:MH*.31, r:MW*.145}]);
+  // クリアケース越しの質感
+  m.fillStyle='rgba(255,255,255,.10)';
+  m.fillRect(px,py,pw2,ph2);
+  const gl=m.createLinearGradient(px,py,px+pw2,py+ph2);
+  gl.addColorStop(.12,'rgba(255,255,255,0)');
+  gl.addColorStop(.16,'rgba(255,255,255,.22)');
+  gl.addColorStop(.22,'rgba(255,255,255,.18)');
+  gl.addColorStop(.26,'rgba(255,255,255,0)');
+  gl.addColorStop(.60,'rgba(255,255,255,0)');
+  gl.addColorStop(.64,'rgba(255,255,255,.12)');
+  gl.addColorStop(.68,'rgba(255,255,255,0)');
+  m.fillStyle=gl; m.fillRect(px,py,pw2,ph2);
+  m.restore();
+  showSaveModal(M.toDataURL('image/png'), 'puni-seal-case.png');
+}));
+
+/* 🎀 パッケージ②(実写サテン布+パールの上に袋を置いた写真風) */
+$('mockPack2').addEventListener('click', ()=> withSheet(()=>{
+  const MW=1500, MH=1980, MS=1.6;
+  const M=mk(MW*MS,MH*MS), m=M.getContext('2d');
+  m.scale(MS,MS);
+  const bgG=m.createLinearGradient(0,0,MW,MH);
+  bgG.addColorStop(0,'#f6f3ee'); bgG.addColorStop(.55,'#eef0f2'); bgG.addColorStop(1,'#e8ecf1');
+  m.fillStyle=bgG; m.fillRect(0,0,MW,MH);
+  const lightG=m.createRadialGradient(MW*.32,MH*.17,50,MW*.32,MH*.17,MW*.95);
+  lightG.addColorStop(0,'rgba(255,255,255,.6)');
+  lightG.addColorStop(1,'rgba(255,255,255,0)');
+  m.fillStyle=lightG; m.fillRect(0,0,MW,MH);
+  const bag=renderBagCanvas2(1.6);
+  const scB=(MH*.72)/bag.h, dw=bag.w*scB, dh=bag.h*scB;
+  m.save();
+  m.translate(MW/2, MH/2); m.rotate(.03);
+  // ふんわり広い影+タイトな影の2段(布に置いた感)
+  m.save();
+  m.shadowColor='rgba(95,102,122,.35)'; m.shadowBlur=60; m.shadowOffsetY=40;
+  m.fillStyle='rgba(0,0,0,.01)'; m.fillRect(-dw/2,-dh/2,dw,dh);
+  m.restore();
+  m.shadowColor='rgba(90,96,118,.4)'; m.shadowBlur=14; m.shadowOffsetX=3; m.shadowOffsetY=10;
+  m.drawImage(bag.c, -dw/2, -dh/2, dw, dh);
+  m.restore();
+  showSaveModal(M.toDataURL('image/png'), 'puni-seal-package2.png');
+}));
+
+/* 🎁 パッケージ③(チャック付きバッグ・スタジオ撮影風) */
+$('mockPack3').addEventListener('click', ()=> withSheet(()=>{
+  const MW=1500, MH=1980, MS=1.6;
+  const M=mk(MW*MS,MH*MS), m=M.getContext('2d');
+  m.scale(MS,MS);
+  const bgG=m.createLinearGradient(0,0,MW,MH);
+  bgG.addColorStop(0,'#edf3ee'); bgG.addColorStop(.55,'#eef0f4'); bgG.addColorStop(1,'#f1f0ea');
+  m.fillStyle=bgG; m.fillRect(0,0,MW,MH);
+  const lightG=m.createRadialGradient(MW*.3,MH*.18,50,MW*.3,MH*.18,MW*.9);
+  lightG.addColorStop(0,'rgba(255,255,255,.55)');
+  lightG.addColorStop(1,'rgba(255,255,255,0)');
+  m.fillStyle=lightG; m.fillRect(0,0,MW,MH);
+  const bag=renderBagCanvas3(1.6);
+  const dw=bag.w/1.6, dh=bag.h/1.6;
+  m.save();
+  m.translate(MW/2, MH/2-15); m.rotate(.02);
+  m.shadowColor='rgba(100,85,140,.4)'; m.shadowBlur=50; m.shadowOffsetY=36;
+  m.drawImage(bag.c, -dw/2, -dh/2, dw, dh);
+  m.restore();
+  showSaveModal(M.toDataURL('image/png'), 'puni-seal-package3.png');
+}));
+
+/* 🔄 Before→After変身投稿風 */
+$('mockBA').addEventListener('click', ()=> withSheet(()=>{
+  const st=stickers.find(q=>q.kind==='image');
+  if(!st){ alert('画像シールをシートに置いてから作ってね🙏'); return; }
+  const MW=1500, MH=1500, MS=1.4;
+  const M=mk(MW*MS,MH*MS), m=M.getContext('2d');
+  m.scale(MS,MS);
+  const bg=m.createLinearGradient(0,0,MW,MH);
+  bg.addColorStop(0,'#f4f3ee'); bg.addColorStop(.5,'#edf1f2'); bg.addColorStop(1,'#e9eef3');
+  m.fillStyle=bg; m.fillRect(0,0,MW,MH);
+  const lg=m.createRadialGradient(MW*.3,MH*.15,50,MW*.3,MH*.15,MW*.95);
+  lg.addColorStop(0,'rgba(255,255,255,.6)'); lg.addColorStop(1,'rgba(255,255,255,0)');
+  m.fillStyle=lg; m.fillRect(0,0,MW,MH);
+  const spark=(x,y,r,col)=>{
+    m.save(); m.translate(x,y); m.fillStyle=col;
+    m.beginPath();
+    for(let q=0;q<4;q++){const a=q*Math.PI/2;
+      m.moveTo(0,0);
+      m.quadraticCurveTo(Math.cos(a+.5)*r*.3, Math.sin(a+.5)*r*.3, Math.cos(a)*r, Math.sin(a)*r);
+      m.quadraticCurveTo(Math.cos(a-.5)*r*.3, Math.sin(a-.5)*r*.3, 0,0);}
+    m.fill(); m.restore();
+  };
+  // 見出し
+  m.fillStyle='#55687b'; m.textAlign='center'; m.textBaseline='middle';
+  m.font=`68px ${TITLE_FONT}`;
+  m.fillText('ぷにぷにシールに変身!', MW/2, 170);
+  // パネル
+  const pw=560, phh=780, py=350;
+  const lx=MW/2-50-pw, rx=MW/2+50;
+  m.save();
+  m.shadowColor='rgba(90,100,120,.25)'; m.shadowBlur=30; m.shadowOffsetY=16;
+  m.fillStyle='#f8f8f6';
+  m.beginPath(); m.roundRect(lx,py,pw,phh,36); m.fill();
+  m.restore();
+  m.save();
+  m.shadowColor='rgba(90,100,120,.28)'; m.shadowBlur=30; m.shadowOffsetY=16;
+  const ag=m.createLinearGradient(rx,py,rx+pw,py+phh);
+  ag.addColorStop(0,'#f2faf6'); ag.addColorStop(1,'#eef4fb');
+  m.fillStyle=ag;
+  m.beginPath(); m.roundRect(rx,py,pw,phh,36); m.fill();
+  m.restore();
+  // BEFORE:元画像そのまま
+  const iw=st.img.naturalWidth||st.img.width, ih=st.img.naturalHeight||st.img.height;
+  const f1=Math.min(430/iw, 480/ih);
+  m.drawImage(st.img, lx+pw/2-iw*f1/2, py+340-ih*f1/2, iw*f1, ih*f1);
+  // AFTER:ぷにシール化(ちょい大きめに見せる)
+  const {c}=ensureCache(st);
+  const f2=Math.min(480/c.width, 530/c.height);
+  m.save();
+  if(st.flip){ m.translate(rx+pw/2, py+340); m.scale(-1,1); m.translate(-(rx+pw/2), -(py+340)); }
+  m.drawImage(c, rx+pw/2-c.width*f2/2, py+340-c.height*f2/2, c.width*f2, c.height*f2);
+  m.restore();
+  // ラベルピル
+  m.fillStyle='#a8b2bd';
+  m.beginPath(); m.roundRect(lx+pw/2-110, py+phh-116, 220, 64, 32); m.fill();
+  m.fillStyle='#fff'; m.font=`36px ${TITLE_FONT}`;
+  m.fillText('BEFORE', lx+pw/2, py+phh-83);
+  const pg=m.createLinearGradient(rx+pw/2-110,0,rx+pw/2+110,0);
+  pg.addColorStop(0,'#8fd4c2'); pg.addColorStop(1,'#7fb8e0');
+  m.fillStyle=pg;
+  m.beginPath(); m.roundRect(rx+pw/2-110, py+phh-116, 220, 64, 32); m.fill();
+  m.fillStyle='#fff';
+  m.fillText('AFTER', rx+pw/2, py+phh-83);
+  // 矢印
+  m.fillStyle='#7fb8e0';
+  m.beginPath();
+  m.moveTo(MW/2-34, py+phh/2-46);
+  m.lineTo(MW/2+34, py+phh/2);
+  m.lineTo(MW/2-34, py+phh/2+46);
+  m.closePath(); m.fill();
+  // キラキラ(AFTER側)
+  spark(rx+pw-46, py+40, 34, '#f2c94c');
+  spark(rx+70, py+70, 22, '#ffffff');
+  spark(rx+pw-80, py+phh-170, 26, '#f2c94c');
+  spark(rx+36, py+phh-230, 18, '#ffffff');
+  // 下部ブランド
+  m.fillStyle='#8a94a2'; m.font=`34px ${TITLE_FONT}`;
+  m.fillText((settings.title||'PuniSeal')+' ♡ PUFFY STICKER', MW/2, MH-95);
+  showSaveModal(M.toDataURL('image/png'), 'puni-seal-henshin.png');
+}));
 
 function showSaveModal(url, name){
   $('saveImg').src=url;
